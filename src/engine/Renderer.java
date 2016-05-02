@@ -1,14 +1,16 @@
 package engine;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.GraphicsEnvironment;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-import java.awt.image.DataBufferInt;
+import engine.math.Matrix;
+import engine.math.Vector3;
+import ui.Window;
 
-import utils.Matrix;
-import utils.Vector3;
+import java.awt.image.DataBufferInt;
 
 public class Renderer {
 	private class OrganizedTriangle {
@@ -41,34 +43,25 @@ public class Renderer {
 		
 		depthBuffer = new float[pixels.length];
 		
-		reset();
-	}
-	
-	public Renderer(int width, int height) {
-		output = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-		this.width = width;
-		this.height = height;
-		pixels = ((DataBufferInt)output.getRaster().getDataBuffer()).getData();
-		
-		canvas = output.createGraphics();
-		canvas.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		
-		depthBuffer = new float[width * height];
-		
-		projectionMatrix = Matrix.PerspectiveFovLH(0.78f, (float)width / (float)height, 0.01f, 1f);
-		
-		reset();
-	}
-	
-	public void reset() {
 		canvas = output.createGraphics();
 		canvas.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_DISABLE);
 		canvas.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
 		canvas.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
 		canvas.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
+		
+		reset();
+	}
+	
+	public Renderer(int width, int height) {
+		this(GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(Window.width/2, Window.height/2));
+	}
+	
+	public void reset() {
+		// TODO: Extract to front-end
 		canvas.setColor(Color.black);
 		canvas.fillRect(0, 0, output.getWidth(), output.getHeight());
 		
+		// TODO: Extract to front-end
 		for (int i=0; i<depthBuffer.length; i++)
 			depthBuffer[i] = Integer.MAX_VALUE;
 	}
@@ -275,5 +268,6 @@ public class Renderer {
 	public void dispose() {
 		canvas.dispose();
 		output.flush();
+		meshes.clear();
 	}
 }

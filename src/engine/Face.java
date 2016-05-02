@@ -1,6 +1,6 @@
 package engine;
 
-import utils.Vector3;
+import engine.math.Vector3;
 
 public class Face {
 	public int A, B, C;

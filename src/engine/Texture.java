@@ -4,6 +4,10 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.io.File;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
 
 public class Texture {
 	public static final Texture error;
@@ -20,6 +24,10 @@ public class Texture {
 	private int[] pixels;
 	private int width, height;
 	public float repeatX = 1, repeatY = 1;
+	
+	public Texture(String path) throws IOException {
+		this(ImageIO.read(new File(path)));
+	}
 	
 	public Texture(BufferedImage tex) {
 		image = new BufferedImage(tex.getWidth(), tex.getHeight(), BufferedImage.TYPE_INT_RGB);

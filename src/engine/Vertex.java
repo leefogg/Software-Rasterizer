@@ -1,7 +1,7 @@
 package engine;
 
 import engine.math.Color;
-import utils.Vector3;
+import engine.math.Vector3;
 
 public class Vertex {
 		public Vector3

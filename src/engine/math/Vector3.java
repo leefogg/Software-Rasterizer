@@ -1,4 +1,4 @@
-package utils;
+package engine.math;
 public class Vector3 {
 	public static final Vector3 
 	zero = new Vector3(0),

@@ -14,9 +14,9 @@ import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
+import engine.math.Matrix;
+import engine.math.Vector3;
 import utils.Log;
-import utils.Matrix;
-import utils.Vector3;
 
 public class Mesh {
 	private Vertex[] vertcies;

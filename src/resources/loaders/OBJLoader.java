@@ -14,22 +14,25 @@ import engine.Face;
 import engine.Texture;
 import engine.Vertex;
 import engine.math.Color;
+import engine.math.Vector3;
 import utils.Log;
-import utils.Vector3;
 
-public class objFile {
-	public static engine.Mesh load(String path) throws NumberFormatException, IOException {
+public class OBJLoader {
+	public static engine.Mesh load(String path) throws IOException, MalformException {
 		Texture texture = Texture.error;
 		ArrayList<Face> facelist = new ArrayList<Face>();
 		ArrayList<Vertex> vertlist = new ArrayList<Vertex>();
 		ArrayList<Vector3> vertexnormalslist = new ArrayList<Vector3>();
 		ArrayList<Vector3> uvlist = new ArrayList<Vector3>();
 		
-		BufferedReader objfile = new BufferedReader(new InputStreamReader(new DataInputStream(new FileInputStream(path))));
+		BufferedReader objfilereader = new BufferedReader(new InputStreamReader(new DataInputStream(new FileInputStream(path))));
+		while(!objfilereader.ready()){}
+		
 		String line;
 		int linenumber=0;
-		while ((line = objfile.readLine()) != null)  {
+		while ((line = objfilereader.readLine()) != null)  {
 			linenumber++;
+			
 			if (line.startsWith("v ")) {
 				String[] values = line.substring(2).split(" ");
 				Vertex newvertex = null;
@@ -47,10 +50,12 @@ public class objFile {
 								Float.valueOf(values[5])
 								);
 					} 
+					
 					if (newvertex != null) {
 						vertlist.add(newvertex);						
 					} else {
 						Log.writeLine("Error parsing vertex in obj file '" + path + "' on line " + linenumber);
+						throw new MalformException("Error parsing vertex on line " + linenumber);
 					}
 			
 			} else if (line.startsWith("vt ")) {
@@ -95,9 +100,12 @@ public class objFile {
 				vertlist.get(indicies[2]).textureCoordinates = uvlist.get(indicies[8]);
 			} else if (line.startsWith("tex")) {
 				String folder = path.substring(0, path.lastIndexOf("/") + 1);
-				texture = new Texture(ImageIO.read(new File(folder + line.substring(4))));
+				texture = new Texture(folder + line.substring(4));
 			}
 		}
+		
+		objfilereader.close();
+		
 		
 		// Connect normals to verts
 		for (int i=0; i<vertlist.size(); i++)

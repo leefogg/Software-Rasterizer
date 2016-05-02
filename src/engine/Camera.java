@@ -1,8 +1,8 @@
 package engine;
 
 
-import utils.Matrix;
-import utils.Vector3;
+import engine.math.Matrix;
+import engine.math.Vector3;
 
 public class Camera {
 	private Vector3 position, target;

@@ -1,4 +1,4 @@
-package utils;
+package engine.math;
 
 import java.util.Arrays;
 
