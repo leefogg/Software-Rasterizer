@@ -93,10 +93,26 @@ public class Matrix {
         float ex = -Vector3.dotProduct(xAxis, eye);
         float ey = -Vector3.dotProduct(yAxis, eye);
         float ez = -Vector3.dotProduct(zAxis, eye);
-        old.m = new float[]{xAxis.x, yAxis.x, zAxis.x, 0, xAxis.y, yAxis.y, zAxis.y, 0, xAxis.z, yAxis.z, zAxis.z, 0, ex, ey, ez, 1f};
+        old.m[0] = xAxis.x;
+        old.m[1] = yAxis.x;
+        old.m[2] = zAxis.x;
+        old.m[3] = 0;
+        old.m[4] = xAxis.y;
+        old.m[5] = yAxis.y;
+        old.m[6] = zAxis.y;
+        old.m[7] = 0;
+        old.m[8] = xAxis.z;
+        old.m[9] = yAxis.z;
+        old.m[10] = zAxis.z;
+        old.m[11] = 0;
+        old.m[12] = ex;
+        old.m[13] = ey;
+        old.m[14] = ez;
+        old.m[15] = 1f;
         return old;
     }
     
+    // TODO: Make reuse alias
     public static Matrix PerspectiveLH(float width, float height, float znear, float zfar) {
         Matrix matrix = new Matrix();
         matrix.m[0] = (2f * znear) / width;
@@ -111,6 +127,7 @@ public class Matrix {
         return matrix;
     }
     
+    // TODO: Make reuse alias
     public static Matrix PerspectiveFovLH(float fov, float aspect, float znear, float zfar) {
         Matrix matrix = new Matrix();
         float tan = (float)(1f / (Math.tan(fov * 0.5f)));

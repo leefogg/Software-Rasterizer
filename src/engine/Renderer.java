@@ -20,7 +20,6 @@ public class Renderer {
 	
 	public int width, height;
 	public BufferedImage output;
-	private int[] outputpixels;
 	private Color[] pixels;
 	private float[] depthBuffer;
 	
@@ -36,7 +35,6 @@ public class Renderer {
 	}
 	public Renderer(BufferedImage buffer) {
 		output = buffer;
-		outputpixels = ((DataBufferInt)output.getRaster().getDataBuffer()).getData();
 		
 		this.width = output.getWidth();
 		this.height = output.getHeight();
@@ -72,6 +70,7 @@ public class Renderer {
 	}
 	
 	public void swapBuffers() {
+		int[] outputpixels = ((DataBufferInt)output.getRaster().getDataBuffer()).getData();
 		for (int i=0; i<pixels.length; i++)
 			outputpixels[i] = pixels[i].toARGB();		
 	}

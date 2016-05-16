@@ -25,16 +25,26 @@ public class Vector3 {
 	
 	public Vector3 normalize() {
 		double length = getMagnitude();
-		// TODO return if length == 0
-		return Vector3.divide(this, (float)length);
+		if (length == 0) return this;
+		return divide((float)length);
 	}
 	
 	public Vector3 lookAt(Vector3 p) {
-		return Vector3.subtract(this, p).divide((float)p.getMagnitude());
+		return subtract(p).divide((float)p.getMagnitude());
+	}
+	
+	public static Vector3 lookAt(Vector3 o, Vector3 p) {
+		return Vector3.subtract(o, p).divide((float)p.getMagnitude());
 	}
 	
 	public Vector3 crossProduct(Vector3 other) {
-		return crossProduct(this, other);
+		float x = y*other.z - z*other.y;
+		float y = z*other.x - x*other.z;
+		float z = x*other.y - y*other.x;
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		return this;
 	}
 	public static Vector3 crossProduct(Vector3 vec1, Vector3 vec2) {
 		return new Vector3(

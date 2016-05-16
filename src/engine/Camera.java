@@ -22,12 +22,12 @@ public class Camera {
 	
 	public void setPosition(Vector3 pos) {
 		position = pos;
-		viewMatrix = Matrix.lookAtLH(position, target, Vector3.up);
+		Matrix.lookAtLH(position, target, Vector3.up, viewMatrix);
 	}
 	
 	public void setTarget(Vector3 pos) {
 		target = pos;
-		viewMatrix = Matrix.lookAtLH(position, target, Vector3.up);
+		Matrix.lookAtLH(position, target, Vector3.up, viewMatrix);
 	}
 	
 	public Camera Clone() {

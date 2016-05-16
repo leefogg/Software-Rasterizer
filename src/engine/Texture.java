@@ -25,6 +25,7 @@ public class Texture {
 	public float repeatX = 1, repeatY = 1;
 	private int offsetX, offsetY;
 	
+	// Textures must be a power of 2
 	public Texture(String path) throws IOException {
 		this(ImageIO.read(new File(path)));
 	}
@@ -32,6 +33,7 @@ public class Texture {
 	public Texture(BufferedImage tex) {
 		width = tex.getWidth();
 		height = tex.getHeight();
+		
 		this.pixels = new Color[width * height];
 		int i=0;
 		int color = 0;
@@ -50,10 +52,12 @@ public class Texture {
 	}
 	
 	public Color map(float tu, float tv) {
-		int u = (int)(Math.abs((tu * width * repeatX)) % width) + (offsetX % width);
-		int v = (int)(Math.abs((tv * height * repeatY)) % height) + (offsetY % height);
-		v %= height;
-		u %= width;
+		tu = Math.abs(tu);
+		tv = Math.abs(tv);
+		int u = (int)(tu * width * repeatX + offsetX);
+		int v = (int)(tv * height * repeatY + offsetY);
+		u &= width-1;
+		v &= height-1;
 		Color pixel = pixels[v*width+u];
 		return pixel;
 	}

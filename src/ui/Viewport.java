@@ -93,7 +93,7 @@ public class Viewport extends Canvas implements MouseWheelListener {
 		/*
 		Mesh m = renderer.meshes.get(0);
 		m.setRotation(m.getRotation().add(0f, -0.01f, 0f));
-		*/
+		 */
 		Vector3 pos = camera.getPosition();
 		pos.x = (float)Math.cos(sincos) * distance;
 		pos.z = (float)Math.sin(sincos) * distance;
