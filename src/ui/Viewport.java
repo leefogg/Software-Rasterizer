@@ -2,8 +2,6 @@ package ui;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.GraphicsEnvironment;
-import java.awt.RenderingHints;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferStrategy;
@@ -69,7 +67,11 @@ public class Viewport extends Canvas implements MouseWheelListener {
 
 		Graphics2D graphics = (Graphics2D)buffer.getDrawGraphics();
 		while(true) {
+			tick();
+			
+			renderer.clearDepthBuffer();
 			renderer.render(camera);
+			renderer.swapBuffers();
 			graphics.drawImage(renderer.output, 0, 0, getWidth(), getHeight(), this);
 
 			graphics.setColor(Color.green);
@@ -78,21 +80,32 @@ public class Viewport extends Canvas implements MouseWheelListener {
 			if(!buffer.contentsLost())
 				buffer.show();
 
-			tick();
 			fc.newFrame();
+			
+			
 		} 
 	}
 
+	float sincos = 0;
+	float stepsize = (float)Math.PI*2/360f;
+	float distance = 5;
 	private void tick() {
+		/*
 		Mesh m = renderer.meshes.get(0);
 		m.setRotation(m.getRotation().add(0f, -0.01f, 0f));
+		*/
+		Vector3 pos = camera.getPosition();
+		pos.x = (float)Math.cos(sincos) * distance;
+		pos.z = (float)Math.sin(sincos) * distance;
+		camera.setPosition(pos);
+		sincos += stepsize;
 	}
 
 	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
 		if (e.getWheelRotation() < 0)
-			camera.setPosition(camera.getPosition().subtract(0, 0, 0.1f));
+			distance -= 0.1f;
 		else
-			camera.setPosition(camera.getPosition().add(0, 0, 0.1f));
+			distance += 0.1f;
 	}
 }

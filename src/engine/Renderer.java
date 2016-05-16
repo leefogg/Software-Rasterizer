@@ -1,16 +1,14 @@
 package engine;
-import java.awt.Color;
+
 import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
-import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 import java.util.ArrayList;
 
+import engine.math.Color;
 import engine.math.Matrix;
 import engine.math.Vector3;
-import ui.Window;
-
-import java.awt.image.DataBufferInt;
 
 public class Renderer {
 	private class OrganizedTriangle {
@@ -22,8 +20,8 @@ public class Renderer {
 	
 	public int width, height;
 	public BufferedImage output;
-	private int[] pixels;
-	private Graphics2D canvas;
+	private int[] outputpixels;
+	private Color[] pixels;
 	private float[] depthBuffer;
 	
 	public ArrayList<Mesh> meshes = new ArrayList<Mesh>();
@@ -33,47 +31,49 @@ public class Renderer {
 		this(320, 240);
 	}
 	
+	public Renderer(int width, int height) {
+		this(GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(width, height));
+	}
 	public Renderer(BufferedImage buffer) {
 		output = buffer;
+		outputpixels = ((DataBufferInt)output.getRaster().getDataBuffer()).getData();
+		
 		this.width = output.getWidth();
 		this.height = output.getHeight();
-		pixels = ((DataBufferInt)output.getRaster().getDataBuffer()).getData();
 		
+		pixels = new Color[width * height];
+		for (int i=0; i<pixels.length; i++)
+			pixels[i] = new Color(0xFF000000);
+			
 		projectionMatrix = Matrix.PerspectiveFovLH(0.78f, (float)width / (float)height, 0.01f, 1f);
 		
 		depthBuffer = new float[pixels.length];
 		
-		canvas = output.createGraphics();
-		canvas.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_DISABLE);
-		canvas.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-		canvas.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
-		canvas.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
-		
-		reset();
+		clearBuffer();
+		clearDepthBuffer();
 	}
 	
-	public Renderer(int width, int height) {
-		this(GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(Window.width/2, Window.height/2));
+	public void clearBuffer() {		
+		for (int i=0; i<pixels.length; i++)
+			pixels[i].set(0xFF000000);
 	}
 	
-	public void reset() {
-		// TODO: Extract to front-end
-		canvas.setColor(Color.black);
-		canvas.fillRect(0, 0, output.getWidth(), output.getHeight());
-		
-		// TODO: Extract to front-end
+	public void clearDepthBuffer() {
 		for (int i=0; i<depthBuffer.length; i++)
-			depthBuffer[i] = Integer.MAX_VALUE;
+			depthBuffer[i] = Integer.MAX_VALUE;		
 	}
 	
 	public void render(Camera cam) {
-		reset();
-		
 		for (Mesh mesh : meshes)
 			mesh.render(this, cam);
 		
 		//System.out.println("Max:" + maxdepth + ", min:" + mindepth);
 		// TODO: Get real distance from camera
+	}
+	
+	public void swapBuffers() {
+		for (int i=0; i<pixels.length; i++)
+			outputpixels[i] = pixels[i].toARGB();		
 	}
 	
 	public void drawTriangle(Vertex v1, Vertex v2, Vertex v3, Texture texture) {
@@ -210,7 +210,7 @@ public class Renderer {
 	float 
 	mindepth = Float.MAX_VALUE,
 	maxdepth = Float.MIN_VALUE;
-	private void drawPoint(int x, int y, float z, int color) {
+	private void drawPoint(int x, int y, float z, Color color) {
 		int pixel = y*width + x;
 		if (depthBuffer[pixel] < z) 
 			return;
@@ -221,20 +221,6 @@ public class Renderer {
 		depthBuffer[pixel] = z;
 		// TOOD: Fix depth buffer values
 		pixels[pixel] = color;
-	}
-	
-	private int multiplyColor(int color, float scale) {
-		scale = clamp(scale, 0, 1);
-		Color c = new Color(color);
-		float red = c.getRed();
-		float green = c.getGreen();
-		float blue = c.getBlue();
-		
-		red /= scale;
-		green /= scale;
-		blue /= scale;
-		
-		return new Color(red, green, blue).getRGB();
 	}
 	
 	private boolean isInBounds(float x, float y) {
@@ -266,7 +252,6 @@ public class Renderer {
 	}
 	
 	public void dispose() {
-		canvas.dispose();
 		output.flush();
 		meshes.clear();
 	}

@@ -12,33 +12,79 @@ public class Color {
 	public float r, g, b; // TODO: Alpha
 
 	public Color(double r, double g, double b) {
-		this(
+		set(
 				(float)r,
 				(float)g,
 				(float)b
 			);
 	}
-	public Color(int rgba) {
-		this(
-				rgba & 0xFF,
-				(rgba >> 8) & 0xFF,
-				(rgba >> 16) & 0xFF
+	public Color(int argb) {
+		set(
+				argb & 0xFF,
+				(argb >> 8) & 0xFF,
+				(argb >> 16) & 0xFF
 			);	
 	}
 	public Color(int r, int g, int b) {
-		this(
+		set(
+				(float)r / 255f,
+				(float)g / 255f,
+				(float)b / 255f
+			);
+	}
+	public Color(byte r, byte g, byte b) {
+		set(
 				(float)r / 255f,
 				(float)g / 255f,
 				(float)b / 255f
 			);
 	}
 	public Color(float r, float g, float b) {
-		if (!isValidColor(r, g, b))
+		set(r, g, b);
+	}
+	
+	public void set(double r, double g, double b) {
+		set(
+				(float)r,
+				(float)g,
+				(float)b
+			);
+	}
+	public void set(int argb) {
+		set(
+				argb & 0xFF,
+				(argb >> 8) & 0xFF,
+				(argb >> 16) & 0xFF
+			);	
+	}
+	public void set(int r, int g, int b) {
+		set(
+				(float)r / 255f,
+				(float)g / 255f,
+				(float)b / 255f
+			);
+	}
+	public void set(byte r, byte g, byte b) {
+		set(
+				(float)r / 255f,
+				(float)g / 255f,
+				(float)b / 255f
+			);
+	}
+	
+	public void set(float red, float green, float blue) {
+		if (!isValidColor(red, green, blue))
 			throw new IllegalArgumentException("RGB value outside of supported range.");
 		
-		this.r = r;
-		this.g = g;
-		this.b = b;
+		this.r = red;
+		this.g = green;
+		this.b = blue;
+	}
+	
+	public void set(Color c) {
+		this.r = c.r;
+		this.g = c.g;
+		this.b = c.b; 
 	}
 	
 	public Color add(Color c) {

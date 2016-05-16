@@ -80,6 +80,9 @@ public class OBJLoader {
 					System.out.println("Non triangle detected.");
 					continue;
 				}
+				
+				//TODO: Make more efficient than splitting lots
+				//TODO: Make normals optional by calculating them
 				int[] indicies = new int[9];
 				int i=0;
 				for (String component : components) // Add X, Y, Z
@@ -107,6 +110,7 @@ public class OBJLoader {
 		objfilereader.close();
 		
 		
+		//TODO: Warn about exceeded normals or verts 
 		// Connect normals to verts
 		for (int i=0; i<vertlist.size(); i++)
 			vertlist.get(i).normal = vertexnormalslist.get(i);
