@@ -1,6 +1,5 @@
 package engine;
 
-import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
@@ -41,7 +40,7 @@ public class Renderer {
 		
 		pixels = new Color[width * height];
 		for (int i=0; i<pixels.length; i++)
-			pixels[i] = new Color(0xFF000000);
+			pixels[i] = new Color(0x00000000);
 			
 		projectionMatrix = Matrix.PerspectiveFovLH(0.78f, (float)width / (float)height, 0.01f, 1f);
 		
@@ -51,9 +50,13 @@ public class Renderer {
 		clearDepthBuffer();
 	}
 	
+	
+	//TODO: Make all static like OpenGL
+	
+	//TODO: Fix
 	public void clearBuffer() {		
-		for (int i=0; i<pixels.length; i++)
-			pixels[i].set(0xFF000000);
+		for (Color c : pixels)
+			c.set(0x00000000);
 	}
 	
 	public void clearDepthBuffer() {
@@ -70,12 +73,14 @@ public class Renderer {
 	}
 	
 	public void swapBuffers() {
-		int[] outputpixels = ((DataBufferInt)output.getRaster().getDataBuffer()).getData();
+		int[] outputpixels = ((DataBufferInt)output.getRaster().getDataBuffer()).getData(); // Pointer to buffer
 		for (int i=0; i<pixels.length; i++)
 			outputpixels[i] = pixels[i].toARGB();		
 	}
 	
+	
 	public void drawTriangle(Vertex v1, Vertex v2, Vertex v3, Texture texture) {
+		// Sort verts by height, v1 at top
 		if (v1.position.y > v2.position.y) {
 			Vertex temp = v2;
 			v2 = v1;
@@ -96,14 +101,21 @@ public class Renderer {
 		
 		
 		Vector3 p1 = v1.position;
+		float miny = p1.y;
+		if (miny < 0)
+			miny = 0;
 		Vector3 p2 = v2.position;
 		Vector3 p3 = v3.position;
+		float maxy = p3.y;
+		if (maxy > height)
+			maxy = height;
 		
-		float dP1P2 = (p2.y > p1.y) ? (p2.x - p1.x) / (p2.y - p1.y) : 0;
-		float dP1P3 = (p3.y > p1.y) ? (p3.x - p1.x) / (p3.y - p1.y) : 0;
+		float dP1P2 = (p2.x - p1.x) / (p2.y - p1.y);
+		float dP1P3 = (p3.x - p1.x) / (p3.y - p1.y);
 
 		if (dP1P2 > dP1P3) {
-			for (int scanline = (int)p1.y; scanline <= p3.y; scanline++) {
+			
+			for (int scanline = (int)miny; scanline < maxy; scanline++) {
 				if (scanline < p2.y) {
 					triangle.ua = v1.textureCoordinates.x;
 					triangle.ub = v3.textureCoordinates.x;
@@ -131,7 +143,7 @@ public class Renderer {
 				}
 			}
 		} else {
-			for (int scanline = (int)p1.y; scanline <= p3.y; scanline++) {
+			for (int scanline = (int)miny; scanline < maxy; scanline++) {
 				if (scanline < p2.y) {
 					triangle.ua = v1.textureCoordinates.x;
 					triangle.ub = v2.textureCoordinates.x;
@@ -161,6 +173,107 @@ public class Renderer {
 		}
 	}
 	
+	/* Not yet implemented
+	public void drawTriangle(Vertex v1, Vertex v2, Vertex v3, Texture tex) {
+		// First sort the three vertices by y-coordinate ascending so v1 is the topmost vertex
+		if (v1.position.y > v2.position.y) {
+			Vertex temp = v2;
+			v2 = v1;
+			v1 = temp;
+		}
+		
+		if (v2.position.y > v3.position.y) {
+			Vertex temp = v2;
+			v2 = v3;
+			v3 = temp;
+			
+			if (v1.position.y > v2.position.y) {
+				temp = v2;
+				v2 = v1;
+				v1 = temp;
+			}
+		}
+		
+		
+		Vector3 p1 = v1.position;
+		Vector3 p2 = v2.position;
+		Vector3 p3 = v3.position;
+	
+	  //here we know that v1.y <= v2.y <= v3.y
+	  //check for trivial case of bottom-flat triangle
+	  if (p2.y == p3.y) {
+		  fillBottomFlatTriangle(v1, v2, v3, tex);
+	  } else if (p1.y == p2.y) { //check for trivial case of top-flat triangle
+		  fillTopFlatTriangle(v1, v2, v3, tex);
+	  } else { //general case - split the triangle in a topflat and bottom-flat one 
+		  float posslopex = (p3.x - p1.x) / (p3.y - p1.y);
+		  float posslopey = (p3.y - p1.y) / (p3.x - p1.x);
+		  float uslope = (v3.textureCoordinates.x - v1.textureCoordinates.x) / (v3.textureCoordinates.y - v1.textureCoordinates.y);
+		  float vslope = (v3.textureCoordinates.y - v1.textureCoordinates.y) / (v3.textureCoordinates.x - v1.textureCoordinates.x);
+		  float dist = p2.y - p1.y;
+		  Vertex v4 = new Vertex(
+				new Vector3(
+						posslopex * dist,
+						posslopey * dist,
+						v1.position.z
+						),
+				new Vector3(
+						uslope * dist,
+						vslope * dist,
+						0
+						)
+		     );
+		  fillBottomFlatTriangle(v1, v2, v4, tex);
+		  fillTopFlatTriangle(v2, v4, v3, tex);
+	  }
+	}
+	
+	private void fillBottomFlatTriangle(Vertex v1, Vertex v2, Vertex v3, Texture tex) {
+		  float invslope1 = (v2.position.x - v1.position.x) / (v2.position.y - v1.position.y);
+		  float invslope2 = (v3.position.x - v1.position.x) / (v3.position.y - v1.position.y);
+
+		  float curx1 = v1.position.x;
+		  float curx2 = v1.position.x;
+
+		  for (int scanlineY = (int)v1.position.y; scanlineY <= v2.position.y; scanlineY++) {
+		    drawLine((int)curx1, scanlineY, (int)curx2, scanlineY);
+		    curx1 += invslope1;
+		    curx2 += invslope2;
+		  }
+		}
+		
+		private void fillTopFlatTriangle(Vertex v1, Vertex v2, Vertex v3, Texture tex) {
+		  float invslope1 = (v3.position.x - v1.position.x) / (v3.position.y - v1.position.y);
+		  float invslope2 = (v3.position.x - v2.position.x) / (v3.position.y - v2.position.y);
+
+		  float curx1 = v3.position.x;
+		  float curx2 = v3.position.x;
+
+		  for (int scanlineY = (int)v3.position.y; scanlineY > v1.position.y; scanlineY--) {
+		    curx1 -= invslope1;
+		    curx2 -= invslope2;
+		    drawLine((int)curx1, scanlineY, (int)curx2, scanlineY);
+		    drawLine(
+		    		curx1, scanlineY,
+		    		
+		    	);
+		  }
+		}
+	
+	private void drawLine(int x, int y, float leftu, float leftv, float rightu, float rightv, int length, Texture tex) {
+		float uslope = (rightu - leftu) / (rightv - leftv);
+		float vslope = (rightv - leftv) / (rightu - leftu);
+		float u = leftu, v = leftv;
+		for (int i=0; i<length; i++) {
+			setPixel(
+					(int)x, y, 0,
+					tex.map(u, v)
+					);
+			u += uslope;
+			v += vslope;
+		}
+	}*/
+	
 	private void processScanline(int line, OrganizedTriangle data, Vertex va, Vertex vb, Vertex vc, Vertex vd, Texture tex) {
 		Vector3 pa = va.position;
 		Vector3 pb = vb.position;
@@ -171,7 +284,11 @@ public class Renderer {
 		float gradient2 = pc.y != pd.y ? (line - pc.y) / (pd.y - pc.y) : 1;
 
 		float sx = interpolate(pa.x, pb.x, gradient1);
+		if (sx < 0)
+			sx = 0;
 		float ex = interpolate(pc.x, pd.x, gradient2);
+		if (ex > width)
+			ex = width;
 
 		float z1 = interpolate(pa.z, pb.z, gradient1);
 		float z2 = interpolate(pc.z, pd.z, gradient2);
@@ -183,23 +300,14 @@ public class Renderer {
 		float ev = interpolate(data.vc, data.vd, gradient2);
 
 		float gradientslope = 1f / (ex - sx);
-		boolean hasrendered = false;
 		for (float x = sx, gradient=0; x < ex; x++, gradient += gradientslope) {
-			if (!isInBounds(x, line)) {
-				if (hasrendered)
-					return;
-				else
-					continue;
-			}
-			hasrendered = true;
-			
 			float z = interpolate(z1, z2, gradient);
 			float u = interpolate(su, eu, gradient);
 			float v = interpolate(sv, ev, gradient);
 
 			// TODO: Calculate world position of pixel
 			// TODO: Calculate distance from camera to pixel
-			drawPoint(
+			setPixel(
 					(int)x, line, z,
 					tex.map(u, v)
 					);
@@ -209,17 +317,22 @@ public class Renderer {
 	float 
 	mindepth = Float.MAX_VALUE,
 	maxdepth = Float.MIN_VALUE;
-	private void drawPoint(int x, int y, float z, Color color) {
-		int pixel = y*width + x;
-		if (depthBuffer[pixel] < z) 
+	private void setPixel(int x, int y, float z, Color color) {
+		int pixelindex = y*width + x;
+		if (pixelindex < 0)
+			return;
+		if (pixelindex >= pixels.length)
+			return;
+		
+		if (depthBuffer[pixelindex] < z) 
 			return;
 		
 		if (z > maxdepth) maxdepth = z;
 		if (z < mindepth) mindepth = z;
 		
-		depthBuffer[pixel] = z;
+		depthBuffer[pixelindex] = z;
 		// TOOD: Fix depth buffer values
-		pixels[pixel] = color;
+		pixels[pixelindex] = color;
 	}
 	
 	private boolean isInBounds(float x, float y) {

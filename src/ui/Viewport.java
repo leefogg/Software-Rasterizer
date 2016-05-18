@@ -48,16 +48,16 @@ public class Viewport extends Canvas implements MouseWheelListener {
 		renderer = new Renderer();
 		try {
 			String localdir =  System.getProperty("user.dir").replaceAll("\\\\", "/");
+			Mesh floor = OBJLoader.load(localdir + "/res/floor.obj");
+			floor.texture.repeatX = 10;
+			floor.texture.repeatY = 10;
+			renderer.addMesh(floor);
 			Mesh cube = OBJLoader.load(localdir + "/res/glados.obj");
 			cube.setPosition(new Vector3(0,1,0));
 //			cube.texture.repeatX = 25;
 //			cube.texture.repeatY = 25;
 			renderer.addMesh(cube);
 			
-			Mesh floor = OBJLoader.load(localdir + "/res/floor.obj");
-			floor.texture.repeatX = 10;
-			floor.texture.repeatY = 10;
-			renderer.addMesh(floor);
 		} catch (Exception e) {
 			System.out.println("An error accured loading resources.");
 			e.printStackTrace();
@@ -69,6 +69,7 @@ public class Viewport extends Canvas implements MouseWheelListener {
 		while(true) {
 			tick();
 			
+			//renderer.clearBuffer();
 			renderer.clearDepthBuffer();
 			renderer.render(camera);
 			renderer.swapBuffers();
@@ -81,8 +82,6 @@ public class Viewport extends Canvas implements MouseWheelListener {
 				buffer.show();
 
 			fc.newFrame();
-			
-			
 		} 
 	}
 
@@ -93,7 +92,7 @@ public class Viewport extends Canvas implements MouseWheelListener {
 		/*
 		Mesh m = renderer.meshes.get(0);
 		m.setRotation(m.getRotation().add(0f, -0.01f, 0f));
-		 */
+		*/
 		Vector3 pos = camera.getPosition();
 		pos.x = (float)Math.cos(sincos) * distance;
 		pos.z = (float)Math.sin(sincos) * distance;
