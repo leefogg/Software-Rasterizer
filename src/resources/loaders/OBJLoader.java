@@ -22,7 +22,6 @@ public class OBJLoader {
 		Texture texture = Texture.error;
 		ArrayList<Face> facelist = new ArrayList<Face>();
 		ArrayList<Vertex> vertlist = new ArrayList<Vertex>();
-		ArrayList<Vector3> vertexnormalslist = new ArrayList<Vector3>();
 		ArrayList<Vector3> uvlist = new ArrayList<Vector3>();
 		
 		BufferedReader objfilereader = new BufferedReader(new InputStreamReader(new DataInputStream(new FileInputStream(path))));
@@ -65,24 +64,15 @@ public class OBJLoader {
 							Float.valueOf(values[1]),
 							0
 						));
-				
-			} else if (line.startsWith("vn ")) {
-				String[] values = line.substring(3).split(" ");
-				vertexnormalslist.add(new Vector3(
-								Float.valueOf(values[0]),
-								Float.valueOf(values[1]),
-								Float.valueOf(values[2])
-							));
-				
+					
 			} else if (line.startsWith("f ")) {
 				String[] components = line.substring(2).split(" ");
 				if (components.length > 3) {
-					System.out.println("Non triangle detected.");
+					System.out.println("Non triangle detected. Skipping face.");
 					continue;
 				}
 				
 				//TODO: Make more efficient than splitting lots
-				//TODO: Make normals optional by calculating them
 				int[] indicies = new int[9];
 				int i=0;
 				for (String component : components) // Add X, Y, Z
@@ -92,10 +82,18 @@ public class OBJLoader {
 				for (String component : components) // Add U, V
 					indicies[i++] = Integer.valueOf(component.split("/")[1])-1;
 				
-				Face newface = new Face(indicies[0], indicies[1], indicies[2]);
-				newface.normal = new Vector3(0);
-				newface.normal.add(vertexnormalslist.get(indicies[3])).add(vertexnormalslist.get(indicies[4])).add(vertexnormalslist.get(indicies[5]));
-				newface.normal = newface.normal.normalize();
+				Face newface = new Face(
+						indicies[0],
+						indicies[1],
+						indicies[2]
+						);
+
+				newface.normal = calculateFaceNormal(
+						vertlist.get(indicies[0]).position,
+						vertlist.get(indicies[1]).position,
+						vertlist.get(indicies[2]).position
+						);
+				
 				facelist.add(newface);
 				
 				vertlist.get(indicies[0]).textureCoordinates = uvlist.get(indicies[6]);
@@ -110,11 +108,6 @@ public class OBJLoader {
 		objfilereader.close();
 		
 		
-		//TODO: Warn about exceeded normals or verts 
-		// Connect normals to verts
-		for (int i=0; i<vertlist.size(); i++)
-			vertlist.get(i).normal = vertexnormalslist.get(i);
-		
 		// Convert to lists
 		Vertex[] vertcies;
 		vertcies = new Vertex[vertlist.size()];
@@ -128,5 +121,16 @@ public class OBJLoader {
 		
 		//System.out.println("Loaded model with " + vertcies.length + " vertcies and " + faces.length + " faces.");
 		return new engine.Mesh(vertcies, faces, texture);
+	}
+	
+	// Reference: https://www.opengl.org/wiki/Calculating_a_Surface_Normal
+	private static Vector3 calculateFaceNormal(Vector3 v1, Vector3 v2, Vector3 v3) {
+		Vector3 normal = new Vector3(0);
+		Vector3 u = Vector3.subtract(v2, v1);
+		Vector3 v = Vector3.subtract(v3, v1);
+		normal.x = (u.y * v.z) - (u.z * v.y);
+		normal.y = (u.z * v.x) - (u.x * v.z);
+		normal.z = (u.x * v.y) - (u.y * v.x);
+		return normal;
 	}
 }

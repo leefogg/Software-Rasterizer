@@ -6,8 +6,7 @@ import engine.math.Vector3;
 public class Vertex {
 		public Vector3
 		position,
-		textureCoordinates,
-		normal;
+		textureCoordinates;
 		public Color color = Color.white;
 
 		public Vertex(Vector3 position) {

@@ -44,15 +44,15 @@ public class Mesh {
 		Vertex[] transformedverts = getProjectedVertcies(transformmatrix, renderer.width, renderer.height);
 		
 		for (Face face : faces) {
-			Vector3 transformednormal = worldview.transformNormal(face.normal);
+			Vector3 transformednormal = transformmatrix.transformNormal(face.normal);
 			if (transformednormal.z >= 0)
 				continue;
 			
 			
 			renderer.drawTriangle(
-					transformedverts[face.A],
-					transformedverts[face.B],
-					transformedverts[face.C],
+					transformedverts[face.vertexA],
+					transformedverts[face.vertexB],
+					transformedverts[face.vertexC],
 					texture
 					);
 		}
@@ -109,7 +109,7 @@ public class Mesh {
 			file.write(output);
 		}
 		for (Face f : faces) {
-			String out = "f " + (f.A+1) + " " + (f.B+1) + " " + (f.C+1) + "\n";
+			String out = "f " + (f.vertexA+1) + " " + (f.vertexB+1) + " " + (f.vertexC+1) + "\n";
 			file.write(out);
 		}
 		for (Face f : faces) {
