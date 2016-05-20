@@ -2,27 +2,27 @@ package resources.loaders;
 
 import java.io.BufferedReader;
 import java.io.DataInputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
-import javax.imageio.ImageIO;
-
+import engine.ColorTexture;
 import engine.Face;
-import engine.Texture;
+import engine.FileTexture;
 import engine.Vertex;
 import engine.math.Color;
 import engine.math.Vector3;
+import engine.Mesh;
+import engine.Texture;
 import utils.Log;
 
 public class OBJLoader {
-	public static engine.Mesh load(String path) throws IOException, MalformException {
-		Texture texture = Texture.error;
-		ArrayList<Face> facelist = new ArrayList<Face>();
-		ArrayList<Vertex> vertlist = new ArrayList<Vertex>();
-		ArrayList<Vector3> uvlist = new ArrayList<Vector3>();
+	public static Mesh load(String path) throws IOException, MalformException {
+		Texture texture = ColorTexture.error;
+		ArrayList<Face> facelist = new ArrayList<Face>(100);
+		ArrayList<Vertex> vertlist = new ArrayList<Vertex>(100);
+		ArrayList<Vector3> uvlist = new ArrayList<Vector3>(100);
 		
 		BufferedReader objfilereader = new BufferedReader(new InputStreamReader(new DataInputStream(new FileInputStream(path))));
 		while(!objfilereader.ready()){}
@@ -68,20 +68,20 @@ public class OBJLoader {
 			} else if (line.startsWith("f ")) {
 				String[] components = line.substring(2).split(" ");
 				if (components.length > 3) {
-					System.out.println("Non triangle detected. Skipping face.");
-					continue;
+					Log.writeLine("Non-triangle face detected. Unsuported face type");
+					throw new MalformException("Unsuported face type (" + components.length + ")");
 				}
 				
 				//TODO: Make more efficient than splitting lots
-				int[] indicies = new int[9];
-				int i=0;
-				for (String component : components) // Add X, Y, Z
-					indicies[i++] = Integer.valueOf(component.split("/")[0])-1;
-				for (String component : components) // Add vertex normals
-					indicies[i++] = Integer.valueOf(component.split("/")[2])-1;
-				for (String component : components) // Add U, V
-					indicies[i++] = Integer.valueOf(component.split("/")[1])-1;
-				
+				int[] indicies = new int[6]; {
+					int i=0;
+					for (String component : components) {
+						String[] subcomponents = component.split("/"); 
+						indicies[i] = Integer.valueOf(subcomponents[0])-1;// Add vertex indexes
+						indicies[i+3] = Integer.valueOf(component.split("/")[1])-1; // Add U, V indexes
+						i++;
+					}
+				}
 				Face newface = new Face(
 						indicies[0],
 						indicies[1],
@@ -96,17 +96,16 @@ public class OBJLoader {
 				
 				facelist.add(newface);
 				
-				vertlist.get(indicies[0]).textureCoordinates = uvlist.get(indicies[6]);
-				vertlist.get(indicies[1]).textureCoordinates = uvlist.get(indicies[7]);
-				vertlist.get(indicies[2]).textureCoordinates = uvlist.get(indicies[8]);
+				vertlist.get(indicies[0]).textureCoordinates = uvlist.get(indicies[3]);
+				vertlist.get(indicies[1]).textureCoordinates = uvlist.get(indicies[4]);
+				vertlist.get(indicies[2]).textureCoordinates = uvlist.get(indicies[5]);
 			} else if (line.startsWith("tex")) {
 				String folder = path.substring(0, path.lastIndexOf("/") + 1);
-				texture = new Texture(folder + line.substring(4));
+				texture = new FileTexture(folder + line.substring(4));
 			}
 		}
 		
 		objfilereader.close();
-		
 		
 		// Convert to lists
 		Vertex[] vertcies;
@@ -120,7 +119,7 @@ public class OBJLoader {
 			faces[i] = facelist.get(i);
 		
 		//System.out.println("Loaded model with " + vertcies.length + " vertcies and " + faces.length + " faces.");
-		return new engine.Mesh(vertcies, faces, texture);
+		return new Mesh(vertcies, faces, texture);
 	}
 	
 	// Reference: https://www.opengl.org/wiki/Calculating_a_Surface_Normal

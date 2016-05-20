@@ -8,6 +8,7 @@ import java.awt.image.BufferStrategy;
 import java.io.IOException;
 
 import engine.Camera;
+import engine.FileTexture;
 import engine.Mesh;
 import engine.Renderer;
 import engine.math.Vector3;
@@ -49,8 +50,9 @@ public class Viewport extends Canvas implements MouseWheelListener {
 		try {
 			String localdir =  System.getProperty("user.dir").replaceAll("\\\\", "/");
 			Mesh floor = OBJLoader.load(localdir + "/res/floor.obj");
-			floor.texture.repeatX = 10;
-			floor.texture.repeatY = 10;
+			FileTexture floortex = (FileTexture)floor.texture;
+			floortex.repeatX = 10;
+			floortex.repeatY = 10;
 			renderer.addMesh(floor);
 			Mesh cube = OBJLoader.load(localdir + "/res/glados.obj");
 			cube.setPosition(new Vector3(0,1,0));

@@ -8,7 +8,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 import engine.Material;
-import engine.Texture;
+import engine.FileTexture;
 import engine.math.Color;
 
 public final class MTLLoader {
@@ -48,7 +48,7 @@ public final class MTLLoader {
 						throw new MalformException("Missing texture location in material " + currentmaterial.name + " on line " + linenumber + ".");
 					
 					String folder = path.substring(0, path.lastIndexOf("/") + 1);
-					currentmaterial.texture = new Texture(folder + lineparts[1]);
+					currentmaterial.texture = new FileTexture(folder + lineparts[1]);
 				}
 			}
 		}

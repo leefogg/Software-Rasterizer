@@ -110,10 +110,10 @@ public class Renderer {
 		if (maxy > height)
 			maxy = height;
 		
-		float dP1P2 = (p2.x - p1.x) / (p2.y - p1.y);
-		float dP1P3 = (p3.x - p1.x) / (p3.y - p1.y);
+		float p2p1xslope = (p2.x - p1.x) / (p2.y - p1.y);
+		float p3p1xslope = (p3.x - p1.x) / (p3.y - p1.y);
 
-		if (dP1P2 > dP1P3) {
+		if (p2p1xslope > p3p1xslope) {
 			
 			for (int scanline = (int)miny; scanline < maxy; scanline++) {
 				if (scanline < p2.y) {
@@ -260,6 +260,7 @@ public class Renderer {
 		  }
 		}
 	
+	}
 	private void drawLine(int x, int y, float leftu, float leftv, float rightu, float rightv, int length, Texture tex) {
 		float uslope = (rightu - leftu) / (rightv - leftv);
 		float vslope = (rightv - leftv) / (rightu - leftu);
@@ -272,38 +273,39 @@ public class Renderer {
 			u += uslope;
 			v += vslope;
 		}
-	}*/
+	}
+	*/
 	
 	private void processScanline(int line, OrganizedTriangle data, Vertex va, Vertex vb, Vertex vc, Vertex vd, Texture tex) {
-		Vector3 pa = va.position;
-		Vector3 pb = vb.position;
-		Vector3 pc = vc.position;
-		Vector3 pd = vd.position;
+		Vector3 p1 = va.position;
+		Vector3 p2 = vb.position;
+		Vector3 p3 = vc.position;
+		Vector3 p4 = vd.position;
 
-		float gradient1 = pa.y != pb.y ? (line - pa.y) / (pb.y - pa.y) : 1;
-		float gradient2 = pc.y != pd.y ? (line - pc.y) / (pd.y - pc.y) : 1;
+		float gradient1 = p1.y != p2.y ? (line - p1.y) / (p2.y - p1.y) : 1;
+		float gradient2 = p3.y != p4.y ? (line - p3.y) / (p4.y - p3.y) : 1;
 
-		float sx = interpolate(pa.x, pb.x, gradient1);
-		if (sx < 0)
-			sx = 0;
-		float ex = interpolate(pc.x, pd.x, gradient2);
-		if (ex > width)
-			ex = width;
+		float startx = interpolate(p1.x, p2.x, gradient1);
+		if (startx < 0)
+			startx = 0;
+		float endx = interpolate(p3.x, p4.x, gradient2);
+		if (endx > width)
+			endx = width;
 
-		float z1 = interpolate(pa.z, pb.z, gradient1);
-		float z2 = interpolate(pc.z, pd.z, gradient2);
+		float z1 = interpolate(p1.z, p2.z, gradient1);
+		float z2 = interpolate(p3.z, p4.z, gradient2);
 
-		float su = interpolate(data.ua, data.ub, gradient1);
-		float eu = interpolate(data.uc, data.ud, gradient2);
+		float startu = interpolate(data.ua, data.ub, gradient1);
+		float endu =   interpolate(data.uc, data.ud, gradient2);
 
-		float sv = interpolate(data.va, data.vb, gradient1);
-		float ev = interpolate(data.vc, data.vd, gradient2);
+		float startv = interpolate(data.va, data.vb, gradient1);
+		float endv =   interpolate(data.vc, data.vd, gradient2);
 
-		float gradientslope = 1f / (ex - sx);
-		for (float x = sx, gradient=0; x < ex; x++, gradient += gradientslope) {
+		float gradientslope = 1f / (endx - startx);
+		for (float x = startx, gradient=0; x < endx; x++, gradient += gradientslope) {
 			float z = interpolate(z1, z2, gradient);
-			float u = interpolate(su, eu, gradient);
-			float v = interpolate(sv, ev, gradient);
+			float u = interpolate(startu, endu, gradient);
+			float v = interpolate(startv, endv, gradient);
 
 			// TODO: Calculate world position of pixel
 			// TODO: Calculate distance from camera to pixel

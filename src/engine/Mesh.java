@@ -1,22 +1,10 @@
 package engine;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-
-import javax.imageio.ImageIO;
 
 import engine.math.Matrix;
 import engine.math.Vector3;
-import utils.Log;
 
 public class Mesh {
 	private Vertex[] vertcies;
@@ -61,8 +49,8 @@ public class Mesh {
 	private Vertex[] getProjectedVertcies(Matrix m, int width, int height) {
 		Vertex[] transformedverts = new Vertex[vertcies.length];
 		Matrix a = Matrix.scaling(width, -height, 1);
-		Matrix b = Matrix.translation(width >> 1, height >> 1, 1);
-		m = Matrix.multiply(m, a).multiply(b);
+		Matrix b = Matrix.translation(width / 2, height / 2, 1);
+		m = m.Clone().multiply(a).multiply(b);
 		
 		for (int i=0; i<vertcies.length; i++) {
 			Vertex vert = vertcies[i];
