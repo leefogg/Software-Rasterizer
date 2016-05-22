@@ -5,16 +5,10 @@ import java.awt.Graphics2D;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferStrategy;
-import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 
-import javax.imageio.ImageIO;
-
-import org.omg.CORBA.Environment;
-
 import engine.Camera;
-import engine.FileTexture;
+import engine.ImageTexture;
 import engine.Mesh;
 import engine.Renderer;
 import engine.math.Vector3;
@@ -56,12 +50,12 @@ public class Viewport extends Canvas implements MouseWheelListener {
 		try {
 			String localdir =  System.getProperty("user.dir").replaceAll("\\\\", "/");
 			/*
+			*/
 			Mesh floor = OBJLoader.load(localdir + "/res/floor.obj");
-			FileTexture floortex = (FileTexture)floor.texture;
+			ImageTexture floortex = (ImageTexture)floor.texture;
 			floortex.repeatX = 10;
 			floortex.repeatY = 10;
 			renderer.addMesh(floor);
-			 */
 			Mesh cube = OBJLoader.load(localdir + "/res/glados.obj");
 			cube.setPosition(new Vector3(0,1,0));
 //			cube.texture.repeatX = 25;

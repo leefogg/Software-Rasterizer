@@ -8,18 +8,19 @@ import javax.imageio.ImageIO;
 
 import engine.math.Color;
 
-public class FileTexture extends Texture {	
+public final class ImageTexture extends Texture {
+
 	private Color[] pixels;
 	private int width, height;
 	public float repeatX = 1, repeatY = 1;
 	private int offsetX, offsetY;
 	
 	// Textures must be a power of 2
-	public FileTexture(String path) throws IOException {
+	public ImageTexture(String path) throws IOException {
 		this(ImageIO.read(new File(path)));
 	}
 	
-	public FileTexture(BufferedImage tex) {
+	public ImageTexture(BufferedImage tex) {
 		width = tex.getWidth();
 		height = tex.getHeight();
 		
@@ -40,7 +41,6 @@ public class FileTexture extends Texture {
 		offsetY = offset % height;
 	}
 	
-	@Override
 	public Color map(float tu, float tv) {
 		tu = Math.abs(tu);
 		tv = Math.abs(tv);

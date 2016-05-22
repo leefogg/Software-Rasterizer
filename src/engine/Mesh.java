@@ -38,9 +38,9 @@ public class Mesh {
 			
 			
 			renderer.drawTriangle(
-					transformedverts[face.vertexA],
-					transformedverts[face.vertexB],
-					transformedverts[face.vertexC],
+					transformedverts[face.vertex1],
+					transformedverts[face.vertex2],
+					transformedverts[face.vertex3],
 					texture
 					);
 		}
@@ -50,7 +50,7 @@ public class Mesh {
 		Vertex[] transformedverts = new Vertex[vertcies.length];
 		Matrix a = Matrix.scaling(width, -height, 1);
 		Matrix b = Matrix.translation(width / 2, height / 2, 1);
-		m = m.Clone().multiply(a).multiply(b);
+		m = Matrix.multiply(m, a).multiply(b);
 		
 		for (int i=0; i<vertcies.length; i++) {
 			Vertex vert = vertcies[i];
@@ -78,17 +78,23 @@ public class Mesh {
 	
 	public void setPosition(Vector3 pos) {
 		position = pos;
-		worldmatrix = Matrix.RotationYawPitchRoll(rotation.y, rotation.x, rotation.z).multiply(Matrix.translation(position.x, position.y, position.z)).multiply(Matrix.scaling(scale.x, scale.y, scale.z));
+		worldmatrix = Matrix.RotationYawPitchRoll(rotation.y, rotation.x, rotation.z)
+				.multiply(Matrix.translation(position.x, position.y, position.z))
+				.multiply(Matrix.scaling(scale.x, scale.y, scale.z));
 	}
 	
 	public void setRotation(Vector3 rot) {
 		rotation = rot;
-		worldmatrix = Matrix.RotationYawPitchRoll(rotation.y, rotation.x, rotation.z).multiply(Matrix.translation(position.x, position.y, position.z)).multiply(Matrix.scaling(scale.x, scale.y, scale.z));
+		worldmatrix = Matrix.RotationYawPitchRoll(rotation.y, rotation.x, rotation.z)
+				.multiply(Matrix.translation(position.x, position.y, position.z))
+				.multiply(Matrix.scaling(scale.x, scale.y, scale.z));
 	}
 	
 	public void setScale(Vector3 scale) {
 		this.scale = scale;
-		worldmatrix = Matrix.RotationYawPitchRoll(rotation.y, rotation.x, rotation.z).multiply(Matrix.translation(position.x, position.y, position.z)).multiply(Matrix.scaling(scale.x, scale.y, scale.z));
+		worldmatrix = Matrix.RotationYawPitchRoll(rotation.y, rotation.x, rotation.z)
+				.multiply(Matrix.translation(position.x, position.y, position.z))
+				.multiply(Matrix.scaling(scale.x, scale.y, scale.z));
 	}
 	
 	public void writeOBJ(FileWriter file) throws IOException {
@@ -97,7 +103,7 @@ public class Mesh {
 			file.write(output);
 		}
 		for (Face f : faces) {
-			String out = "f " + (f.vertexA+1) + " " + (f.vertexB+1) + " " + (f.vertexC+1) + "\n";
+			String out = "f " + (f.vertex1+1) + " " + (f.vertex2+1) + " " + (f.vertex3+1) + "\n";
 			file.write(out);
 		}
 		for (Face f : faces) {

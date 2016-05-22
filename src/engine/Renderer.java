@@ -105,22 +105,22 @@ public class Renderer {
 			}
 			
 			
-			Vector3 p1 = v1.position;
-			int miny = (int)p1.y;
-			if (miny < 0)
-				miny = 0;
-			Vector3 p2 = v2.position;
-			Vector3 p3 = v3.position;
-			int maxy = (int)p3.y;
-			if (maxy > height)
-				maxy = height;
-			int middle = (int)p2.y;
+			Vector3 toppos = v1.position;
+			int top = (int)toppos.y;
+			if (top < 0)
+				top = 0;
+			Vector3 middlepos = v2.position;
+			int middle = (int)middlepos.y;
+			Vector3 bottompos = v3.position;
+			int bottom = (int)bottompos.y;
+			if (bottom > height)
+				bottom = height;
 			
-			float p2p1xslope = (p2.x - p1.x) / (p2.y - p1.y);
-			float p3p1xslope = (p3.x - p1.x) / (p3.y - p1.y);
-	
-			if (p2p1xslope > p3p1xslope) {
-				for (int scanline = miny; scanline < maxy; scanline++) {
+			float toptomiddlexslope = (middlepos.x - toppos.x) / (middlepos.y - toppos.y);
+			float toptobottomxslope = (bottompos.x - toppos.x) / (bottompos.y - toppos.y);
+
+			if (toptomiddlexslope > toptobottomxslope) {
+				for (int scanline = top; scanline < bottom; scanline++) {
 					if (scanline < middle) {
 						triangle.ua = v1.textureCoordinates.x;
 						triangle.ub = v3.textureCoordinates.x;
@@ -148,7 +148,7 @@ public class Renderer {
 					}
 				}
 			} else {
-				for (int scanline = miny; scanline < maxy; scanline++) {
+				for (int scanline = top; scanline < bottom; scanline++) {
 					if (scanline < middle) {
 						triangle.ua = v1.textureCoordinates.x;
 						triangle.ub = v2.textureCoordinates.x;
@@ -266,7 +266,6 @@ public class Renderer {
 		  }
 		}
 	
-	}
 	private void drawLine(int x, int y, float leftu, float leftv, float rightu, float rightv, int length, Texture tex) {
 		float uslope = (rightu - leftu) / (rightv - leftv);
 		float vslope = (rightv - leftv) / (rightu - leftu);
@@ -279,8 +278,7 @@ public class Renderer {
 			u += uslope;
 			v += vslope;
 		}
-	}
-	*/
+	}*/
 	
 	private void processScanline(int line, OrganizedTriangle data, Vertex va, Vertex vb, Vertex vc, Vertex vd, Texture tex) {
 		Vector3 p1 = va.position;
@@ -291,27 +289,27 @@ public class Renderer {
 		float gradient1 = (line - p1.y) / (p2.y - p1.y);
 		float gradient2 = (line - p3.y) / (p4.y - p3.y);
 
-		float startx = interpolate(p1.x, p2.x, gradient1);
-		if (startx < 0)
-			startx = 0;
-		float endx = interpolate(p3.x, p4.x, gradient2);
-		if (endx > width)
-			endx = width;
+		float sx = interpolate(p1.x, p2.x, gradient1);
+		if (sx < 0)
+			sx = 0;
+		float ex = interpolate(p3.x, p4.x, gradient2);
+		if (ex > width)
+			ex = width;
 
 		float z1 = interpolate(p1.z, p2.z, gradient1);
 		float z2 = interpolate(p3.z, p4.z, gradient2);
 
-		float startu = interpolate(data.ua, data.ub, gradient1);
-		float endu =   interpolate(data.uc, data.ud, gradient2);
+		float su = interpolate(data.ua, data.ub, gradient1);
+		float eu = interpolate(data.uc, data.ud, gradient2);
 
-		float startv = interpolate(data.va, data.vb, gradient1);
-		float endv =   interpolate(data.vc, data.vd, gradient2);
+		float sv = interpolate(data.va, data.vb, gradient1);
+		float ev = interpolate(data.vc, data.vd, gradient2);
 
-		float gradientslope = 1f / (endx - startx);
-		for (float x = startx, gradient=0; x < endx; x++, gradient += gradientslope) {
+		float gradientslope = 1f / (ex - sx);
+		for (float x = sx, gradient=0; x < ex; x++, gradient += gradientslope) {
 			float z = interpolate(z1, z2, gradient);
-			float u = interpolate(startu, endu, gradient);
-			float v = interpolate(startv, endv, gradient);
+			float u = interpolate(su, eu, gradient);
+			float v = interpolate(sv, ev, gradient);
 
 			// TODO: Calculate world position of pixel
 			// TODO: Calculate distance from camera to pixel
