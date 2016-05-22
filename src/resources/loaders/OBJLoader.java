@@ -82,10 +82,11 @@ public class OBJLoader {
 						i++;
 					}
 				}
+				
 				Face newface = new Face(
-						indicies[0],
-						indicies[1],
-						indicies[2]
+						vertlist.indexOf(indicies[0]),
+						vertlist.indexOf(indicies[1]),
+						vertlist.indexOf(indicies[2])
 						);
 
 				newface.normal = calculateFaceNormal(

@@ -30,7 +30,7 @@ public class Renderer {
 	}
 	
 	public Renderer(int width, int height) {
-		this(GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().createCompatibleImage(width, height));
+		this(new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB));
 	}
 	public Renderer(BufferedImage buffer) {
 		output = buffer;
@@ -40,29 +40,32 @@ public class Renderer {
 		
 		pixels = new Color[width * height];
 		for (int i=0; i<pixels.length; i++)
-			pixels[i] = new Color(0x00000000);
+			pixels[i] = new Color(0x00000000); // TODO: Set void color
 			
 		projectionMatrix = Matrix.PerspectiveFovLH(0.78f, (float)width / (float)height, 0.01f, 1f);
 		
 		depthBuffer = new float[pixels.length];
 		
-		clearBuffer();
 		clearDepthBuffer();
 	}
 	
+	public void addMesh(Mesh m) {
+		if (meshes.indexOf(m) == -1)
+			meshes.add(m);
+	}
 	
 	//TODO: Make all static like OpenGL
 	
-	//TODO: Fix
 	public void clearBuffer() {		
 		for (Color c : pixels)
-			c.set(0x00000000);
+			c.set(0x00000000); // TODO: Set void color
 	}
 	
 	public void clearDepthBuffer() {
 		for (int i=0; i<depthBuffer.length; i++)
 			depthBuffer[i] = Integer.MAX_VALUE;		
 	}
+	
 	
 	public void render(Camera cam) {
 		for (Mesh mesh : meshes)
@@ -80,94 +83,97 @@ public class Renderer {
 	
 	
 	public void drawTriangle(Vertex v1, Vertex v2, Vertex v3, Texture texture) {
-		// Sort verts by height, v1 at top
-		if (v1.position.y > v2.position.y) {
-			Vertex temp = v2;
-			v2 = v1;
-			v1 = temp;
-		}
-		
-		if (v2.position.y > v3.position.y) {
-			Vertex temp = v2;
-			v2 = v3;
-			v3 = temp;
-			
+		if (isInBounds(v1.position) || isInBounds(v2.position) || isInBounds(v3.position)) {
+			// Sort verts by height, v1 at top
+			//TODO: Optimise
 			if (v1.position.y > v2.position.y) {
-				temp = v2;
+				Vertex temp = v2;
 				v2 = v1;
 				v1 = temp;
 			}
-		}
-		
-		
-		Vector3 p1 = v1.position;
-		float miny = p1.y;
-		if (miny < 0)
-			miny = 0;
-		Vector3 p2 = v2.position;
-		Vector3 p3 = v3.position;
-		float maxy = p3.y;
-		if (maxy > height)
-			maxy = height;
-		
-		float p2p1xslope = (p2.x - p1.x) / (p2.y - p1.y);
-		float p3p1xslope = (p3.x - p1.x) / (p3.y - p1.y);
-
-		if (p2p1xslope > p3p1xslope) {
 			
-			for (int scanline = (int)miny; scanline < maxy; scanline++) {
-				if (scanline < p2.y) {
-					triangle.ua = v1.textureCoordinates.x;
-					triangle.ub = v3.textureCoordinates.x;
-					triangle.uc = v1.textureCoordinates.x;
-					triangle.ud = v2.textureCoordinates.x;
-					
-					triangle.va = v1.textureCoordinates.y;
-					triangle.vb = v3.textureCoordinates.y;
-					triangle.vc = v1.textureCoordinates.y;
-					triangle.vd = v2.textureCoordinates.y;
-					
-					processScanline(scanline, triangle, v1, v3, v1, v2, texture);
-				} else {
-					triangle.ua = v1.textureCoordinates.x;
-					triangle.ub = v3.textureCoordinates.x;
-					triangle.uc = v2.textureCoordinates.x;
-					triangle.ud = v3.textureCoordinates.x;
-					
-					triangle.va = v1.textureCoordinates.y;
-					triangle.vb = v3.textureCoordinates.y;
-					triangle.vc = v2.textureCoordinates.y;
-					triangle.vd = v3.textureCoordinates.y;
-					
-					processScanline(scanline, triangle, v1, v3, v2, v3, texture);
+			if (v2.position.y > v3.position.y) {
+				Vertex temp = v2;
+				v2 = v3;
+				v3 = temp;
+				
+				if (v1.position.y > v2.position.y) {
+					temp = v2;
+					v2 = v1;
+					v1 = temp;
 				}
 			}
-		} else {
-			for (int scanline = (int)miny; scanline < maxy; scanline++) {
-				if (scanline < p2.y) {
-					triangle.ua = v1.textureCoordinates.x;
-					triangle.ub = v2.textureCoordinates.x;
-					triangle.uc = v1.textureCoordinates.x;
-					triangle.ud = v3.textureCoordinates.x;
-					
-					triangle.va = v1.textureCoordinates.y;
-					triangle.vb = v2.textureCoordinates.y;
-					triangle.vc = v1.textureCoordinates.y;
-					triangle.vd = v3.textureCoordinates.y;
-					
-					processScanline(scanline, triangle, v1, v2, v1, v3, texture);
-				} else {
-					triangle.ua = v2.textureCoordinates.x;
-					triangle.ub = v3.textureCoordinates.x;
-					triangle.uc = v1.textureCoordinates.x;
-					triangle.ud = v3.textureCoordinates.x;
-					
-					triangle.va = v2.textureCoordinates.y;
-					triangle.vb = v3.textureCoordinates.y;
-					triangle.vc = v1.textureCoordinates.y;
-					triangle.vd = v3.textureCoordinates.y;
-					
-					processScanline(scanline, triangle, v2, v3, v1, v3, texture);
+			
+			
+			Vector3 p1 = v1.position;
+			int miny = (int)p1.y;
+			if (miny < 0)
+				miny = 0;
+			Vector3 p2 = v2.position;
+			Vector3 p3 = v3.position;
+			int maxy = (int)p3.y;
+			if (maxy > height)
+				maxy = height;
+			int middle = (int)p2.y;
+			
+			float p2p1xslope = (p2.x - p1.x) / (p2.y - p1.y);
+			float p3p1xslope = (p3.x - p1.x) / (p3.y - p1.y);
+	
+			if (p2p1xslope > p3p1xslope) {
+				for (int scanline = miny; scanline < maxy; scanline++) {
+					if (scanline < middle) {
+						triangle.ua = v1.textureCoordinates.x;
+						triangle.ub = v3.textureCoordinates.x;
+						triangle.uc = v1.textureCoordinates.x;
+						triangle.ud = v2.textureCoordinates.x;
+						
+						triangle.va = v1.textureCoordinates.y;
+						triangle.vb = v3.textureCoordinates.y;
+						triangle.vc = v1.textureCoordinates.y;
+						triangle.vd = v2.textureCoordinates.y;
+						
+						processScanline(scanline, triangle, v1, v3, v1, v2, texture);
+					} else {
+						triangle.ua = v1.textureCoordinates.x;
+						triangle.ub = v3.textureCoordinates.x;
+						triangle.uc = v2.textureCoordinates.x;
+						triangle.ud = v3.textureCoordinates.x;
+						
+						triangle.va = v1.textureCoordinates.y;
+						triangle.vb = v3.textureCoordinates.y;
+						triangle.vc = v2.textureCoordinates.y;
+						triangle.vd = v3.textureCoordinates.y;
+						
+						processScanline(scanline, triangle, v1, v3, v2, v3, texture);
+					}
+				}
+			} else {
+				for (int scanline = miny; scanline < maxy; scanline++) {
+					if (scanline < middle) {
+						triangle.ua = v1.textureCoordinates.x;
+						triangle.ub = v2.textureCoordinates.x;
+						triangle.uc = v1.textureCoordinates.x;
+						triangle.ud = v3.textureCoordinates.x;
+						
+						triangle.va = v1.textureCoordinates.y;
+						triangle.vb = v2.textureCoordinates.y;
+						triangle.vc = v1.textureCoordinates.y;
+						triangle.vd = v3.textureCoordinates.y;
+						
+						processScanline(scanline, triangle, v1, v2, v1, v3, texture);
+					} else {
+						triangle.ua = v2.textureCoordinates.x;
+						triangle.ub = v3.textureCoordinates.x;
+						triangle.uc = v1.textureCoordinates.x;
+						triangle.ud = v3.textureCoordinates.x;
+						
+						triangle.va = v2.textureCoordinates.y;
+						triangle.vb = v3.textureCoordinates.y;
+						triangle.vc = v1.textureCoordinates.y;
+						triangle.vd = v3.textureCoordinates.y;
+						
+						processScanline(scanline, triangle, v2, v3, v1, v3, texture);
+					}
 				}
 			}
 		}
@@ -282,8 +288,8 @@ public class Renderer {
 		Vector3 p3 = vc.position;
 		Vector3 p4 = vd.position;
 
-		float gradient1 = p1.y != p2.y ? (line - p1.y) / (p2.y - p1.y) : 1;
-		float gradient2 = p3.y != p4.y ? (line - p3.y) / (p4.y - p3.y) : 1;
+		float gradient1 = (line - p1.y) / (p2.y - p1.y);
+		float gradient2 = (line - p3.y) / (p4.y - p3.y);
 
 		float startx = interpolate(p1.x, p2.x, gradient1);
 		if (startx < 0)
@@ -321,10 +327,6 @@ public class Renderer {
 	maxdepth = Float.MIN_VALUE;
 	private void setPixel(int x, int y, float z, Color color) {
 		int pixelindex = y*width + x;
-		if (pixelindex < 0)
-			return;
-		if (pixelindex >= pixels.length)
-			return;
 		
 		if (depthBuffer[pixelindex] < z) 
 			return;
@@ -334,9 +336,12 @@ public class Renderer {
 		
 		depthBuffer[pixelindex] = z;
 		// TOOD: Fix depth buffer values
-		pixels[pixelindex] = color;
+		pixels[pixelindex].add(color);
 	}
 	
+	private boolean isInBounds(Vector3 point) {
+		return isInBounds(point.x, point.y);
+	}
 	private boolean isInBounds(float x, float y) {
 		if (x < 0) 		return false;
 		if (y < 0) 		return false;
@@ -358,11 +363,6 @@ public class Renderer {
 	
 	private float interpolate(float min, float max, float gradient) {
 		return min + (max - min) * clamp(gradient);
-	}
-	
-	public void addMesh(Mesh m) {
-		if (meshes.indexOf(m) == -1)
-			meshes.add(m);
 	}
 	
 	public void dispose() {

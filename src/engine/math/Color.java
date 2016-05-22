@@ -6,27 +6,28 @@ public class Color {
 	green = new Color(0,255,0),
 	blue = new Color(0,0,255),
 	black = new Color(0,0,0),
-	white = new Color(255,255,255);
+	white = new Color(255,255,255),
+	alpha = new Color(0,0,0,0);
 	
 	//TODO: subtractive and additive modes
-	public float r, g, b; // TODO: Alpha
+	public float r, g, b, a = 1;
+	
+	public Color(){}
 
-	public Color(double r, double g, double b) {
-		set(
-				(float)r,
-				(float)g,
-				(float)b
-			);
-	}
 	public Color(int argb) {
+		set(argb);	
+	}
+	public Color(int a, int r, int g, int b) {
 		set(
-				argb & 0xFF,
-				(argb >> 8) & 0xFF,
-				(argb >> 16) & 0xFF
-			);	
+				(float)a / 255f,
+				(float)r / 255f,
+				(float)g / 255f,
+				(float)b / 255f
+			);
 	}
 	public Color(int r, int g, int b) {
 		set(
+				0,
 				(float)r / 255f,
 				(float)g / 255f,
 				(float)b / 255f
@@ -34,31 +35,38 @@ public class Color {
 	}
 	public Color(byte r, byte g, byte b) {
 		set(
+				0,
 				(float)r / 255f,
 				(float)g / 255f,
 				(float)b / 255f
 			);
 	}
 	public Color(float r, float g, float b) {
-		set(r, g, b);
+		set(0, r, g, b);
+	}
+	public Color(float a, float r, float g, float b) {
+		set(a, r, g, b);
 	}
 	
-	public void set(double r, double g, double b) {
-		set(
-				(float)r,
-				(float)g,
-				(float)b
-			);
-	}
 	public void set(int argb) {
 		set(
+				(argb >> 24) & 0xFF,
 				argb & 0xFF,
 				(argb >> 8) & 0xFF,
 				(argb >> 16) & 0xFF
 			);	
 	}
+	public void set(int a, int r, int g, int b) {
+		set(
+			(float)(a / 255f),
+			(float)(r / 255f),
+			(float)(g / 255f),
+			(float)(b / 255f)
+		);
+	}
 	public void set(int r, int g, int b) {
 		set(
+				0f,
 				(float)r / 255f,
 				(float)g / 255f,
 				(float)b / 255f
@@ -66,19 +74,21 @@ public class Color {
 	}
 	public void set(byte r, byte g, byte b) {
 		set(
+				0,
 				(float)r / 255f,
 				(float)g / 255f,
 				(float)b / 255f
 			);
 	}
 	
-	public void set(float red, float green, float blue) {
-		if (!isValidColor(red, green, blue))
-			throw new IllegalArgumentException("RGB value outside of supported range.");
+	public void set(float a, float r, float g, float b) {
+		if (!isValidColor(a, r, g, b))
+			throw new IllegalArgumentException("ARGB value outside of supported range.");
 		
-		this.r = red;
-		this.g = green;
-		this.b = blue;
+		this.a = a;
+		this.r = r;
+		this.g = g;
+		this.b = b;
 	}
 	
 	public void set(Color c) {
@@ -88,10 +98,10 @@ public class Color {
 	}
 	
 	public Color add(Color c) {
-		r += c.r;
-		g += c.g;
-		b += c.b;
-		ensureScale();
+		r += c.r * c.a;
+		g += c.g * c.a;
+		b += c.b * c.a;
+		a += c.a;
 		return this;
 	}
 	
@@ -99,7 +109,6 @@ public class Color {
 		r -= c.r;
 		g -= c.g;
 		b -= c.b;
-		ensureScale();
 		return this;
 	}
 	
@@ -107,8 +116,6 @@ public class Color {
 		r *= c.r;
 		g *= c.g;
 		b *= c.b;
-		// Ensure scale is not needed
-		// as multiplying two decimals always results in a decimal
 		return this;
 	}
 	
@@ -116,26 +123,37 @@ public class Color {
 		r *= scale;
 		g *= scale;
 		b *= scale;
-		// Ensure scale is not needed
-		// as multiplying two decimals always results in a decimal
 		return this;
 	}
 	
 	
-	private boolean isValidColor(float r, float g, float b) {
-		return  r >= 0f && r <= 1f &&
-				g >= 0f && g <= 1f &&
-				b >= 0f && b <= 1f;
+	protected boolean isValidColor(float a, float r, float g, float b) {
+		if (a > 1f) return false;
+		if (r > 1f) return false;
+		if (g > 1f) return false;
+		if (b > 1f) return false;
+		if (a < 0f) return false;
+		if (r < 0f) return false;
+		if (g < 0f) return false;
+		if (b < 0f) return false;
+		return true;
 	}
 	
-	private void ensureScale() {
+	public void ensureScale() {
+		a = Math.min(1, Math.max(0, a));
 		r = Math.min(1, Math.max(0, r));
 		g = Math.min(1, Math.max(0, g));
 		b = Math.min(1, Math.max(0, b));
 	}
 	
+	
+	public static boolean hasAlpha(int argb) {
+		return ((argb >> 24) & 0xFF) < 255;
+	}
+	
+	
 	public Color clone() {
-		return new Color(r,g,b);
+		return new Color(a,r,g,b);
 	}
 	
 	public java.awt.Color toColor() {
@@ -143,12 +161,18 @@ public class Color {
 	}
 	
 	public int toARGB() {
+		ensureScale();
 		int
+		a = (int)this.a,
 		r = (int)(this.r * 255f),
 		g = (int)(this.g * 255f),
 		b = (int)(this.b * 255f);
 		
-		return (0xFF000000) | (r << 16) | (g << 8) | b; 
+		return (0xFF << 24) | (b << 16) | (g << 8) | r; 
+	}
+	
+	private float invertChannel(float a) {
+		return Math.abs(a - 1);
 	}
 
 }
