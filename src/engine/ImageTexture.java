@@ -21,34 +21,43 @@ public final class ImageTexture extends Texture {
 	}
 	
 	public ImageTexture(BufferedImage tex) {
+		//TODO: Warn if dimension is not power of two
 		width = tex.getWidth();
 		height = tex.getHeight();
 		
 		this.pixels = new Color[width * height];
 		int i=0;
-		int color = 0;
-		for (int y=0; y<height; y++)
+		for (int y=0; y<height; y++) {
 			for (int x=0; x<width; x++) {
-				color = tex.getRGB(x, y);
-				this.pixels[i++] = new Color(color);
+				int argb = tex.getRGB(x, y);
+				this.pixels[i++] = new Color(argb);
 			}
+		}
 	}
 	
-	public void setOffsetX(int offset) {
+	public void setXOffset(int offset) {
 		offsetX = offset % width;
 	}
-	public void setOffsetY(int offset) {
+	public void setYOffset(int offset) {
 		offsetY = offset % height;
+	}
+	
+	public int getWidth() {
+		return width;
+	}
+
+	public int getHeight() {
+		return height;
 	}
 	
 	public Color map(float tu, float tv) {
 		tu = Math.abs(tu);
 		tv = Math.abs(tv);
-		int u = (int)(tu * width * repeatX + offsetX);
-		int v = (int)(tv * height * repeatY + offsetY);
+		int u = (int)(tu * width * repeatX) + offsetX;
+		int v = (int)(tv * height * repeatY) + offsetY;
 		u &= width-1;
 		v &= height-1;
-		Color pixel = pixels[v*width+u];
+		Color pixel = pixels[v*width + u];
 		return pixel;
 	}
 }

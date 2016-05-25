@@ -13,9 +13,13 @@ public class Matrix {
 	public Matrix(float[] m) {
 		this.m = m;
 	}
+	
+	private static float[] newMatrix() {
+		return new float[16];
+	}
 
 	public static float[] rotationX(float angle) {
-		float[] m = new float[16];
+		float[] m = newMatrix();
 		float s = (float)Math.sin(angle);
 		float c = (float)Math.cos(angle);
 		m[0] = 1.0f;
@@ -28,7 +32,7 @@ public class Matrix {
 	}
 
 	public static float[] rotationY(float angle) {
-		float[] m = new float[16];
+		float[] m = newMatrix();
 		float s = (float)Math.sin(angle);
 		float c = (float)Math.cos(angle);
 		m[5] = 1f;
@@ -40,7 +44,7 @@ public class Matrix {
 		return m;
 	}
 	public static float[] rotationZ(float angle) {
-		float[] m = new float[16];
+		float[] m = newMatrix();
 		float s = (float)Math.sin(angle);
 		float c = (float)Math.cos(angle);
 		m[10] = 1f;
@@ -164,6 +168,7 @@ public class Matrix {
         return result;
     }
     
+
     public static Matrix scaling(float x, float y, float z) {
         Matrix result = new Matrix();
         result.m[0] = x;
@@ -172,6 +177,7 @@ public class Matrix {
         result.m[15] = 1f;
         return result;
     }
+
     public static Matrix translation(float x, float y, float z) {
         Matrix result = Matrix.identity.Clone();
         result.m[12] = x;
@@ -296,6 +302,9 @@ public class Matrix {
 		return out;
 	}
 	
+	public Vector3 transformCoordinates(Vector3 pos) {
+		return transformCoordinates(pos, this);
+	}
 	public static Vector3 transformCoordinates(Vector3 pos, Matrix mat) {
 		float x = (pos.x * mat.m[0]) + (pos.y * mat.m[4]) + (pos.z * mat.m[8]) + mat.m[12];
         float y = (pos.x * mat.m[1]) + (pos.y * mat.m[5]) + (pos.z * mat.m[9]) + mat.m[13];
@@ -303,25 +312,55 @@ public class Matrix {
         float w = (pos.x * mat.m[3]) + (pos.y * mat.m[7]) + (pos.z * mat.m[11]) + mat.m[15];
         return new Vector3(x / w, y / w, z / w);
 	}
-	public Vector3 transformCoordinates(Vector3 pos) {
-		return transformCoordinates(pos, this);
+	public static void transformCoordinates(Vector3 pos, Matrix mat, Vector3 dest) {
+		dest.x = (pos.x * mat.m[0]) + (pos.y * mat.m[4]) + (pos.z * mat.m[8]) + mat.m[12];
+        dest.y = (pos.x * mat.m[1]) + (pos.y * mat.m[5]) + (pos.z * mat.m[9]) + mat.m[13];
+        dest.z = (pos.x * mat.m[2]) + (pos.y * mat.m[6]) + (pos.z * mat.m[10]) + mat.m[14];
+        float w = (pos.x * mat.m[3]) + (pos.y * mat.m[7]) + (pos.z * mat.m[11]) + mat.m[15];
+        dest.x /= w;
+        dest.y /= w;
+        dest.z /= w;
 	}
 	
+	public Vector3 transformNormal(Vector3 pos) {
+		return transformNormal(pos, this);
+	}
 	public static Vector3 transformNormal(Vector3 pos, Matrix mat) {
 		float x = (pos.x * mat.m[0]) + (pos.y * mat.m[4]) + (pos.z * mat.m[8]);
         float y = (pos.x * mat.m[1]) + (pos.y * mat.m[5]) + (pos.z * mat.m[9]);
         float z = (pos.x * mat.m[2]) + (pos.y * mat.m[6]) + (pos.z * mat.m[10]);
         return new Vector3(x, y, z);
 	}
-	public Vector3 transformNormal(Vector3 pos) {
-		return transformNormal(pos, this);
+	public static void transformNormal(Vector3 pos, Matrix mat, Vector3 dest) {
+		dest.x = (pos.x * mat.m[0]) + (pos.y * mat.m[4]) + (pos.z * mat.m[8]);
+        dest.y = (pos.x * mat.m[1]) + (pos.y * mat.m[5]) + (pos.z * mat.m[9]);
+        dest.z = (pos.x * mat.m[2]) + (pos.y * mat.m[6]) + (pos.z * mat.m[10]);
 	}
 
 	public boolean equals(Matrix value) {
-		return (this.m[0] == value.m[0] && this.m[1] == value.m[1] && this.m[2] == value.m[2] && this.m[3] == value.m[3] && this.m[4] == value.m[4] && this.m[5] == value.m[5] && this.m[6] == value.m[6] && this.m[7] == value.m[7] && this.m[8] == value.m[8] && this.m[9] == value.m[9] && this.m[10] == value.m[10] && this.m[11] == value.m[11] && this.m[12] == value.m[12] && this.m[13] == value.m[13] && this.m[14] == value.m[14] && this.m[15] == value.m[15]);
-	};
+		return (this.m[0] == value.m[0] 
+				&& this.m[1] == value.m[1] 
+				&& this.m[2] == value.m[2] 
+				&& this.m[3] == value.m[3]
+				&& this.m[4] == value.m[4] 
+				&& this.m[5] == value.m[5] 
+				&& this.m[6] == value.m[6] 
+				&& this.m[7] == value.m[7] 
+				&& this.m[8] == value.m[8] 
+				&& this.m[9] == value.m[9] 
+				&& this.m[10] == value.m[10] 
+				&& this.m[11] == value.m[11] 
+				&& this.m[12] == value.m[12] 
+				&& this.m[13] == value.m[13] 
+				&& this.m[14] == value.m[14] 
+				&& this.m[15] == value.m[15]
+			);
+	}
 
 	public Matrix Clone() {
 		return new Matrix(Arrays.copyOf(m, m.length));
+	}
+	public void Clone(Matrix matrix) {
+		matrix.m = Arrays.copyOf(m, m.length);
 	}
 }

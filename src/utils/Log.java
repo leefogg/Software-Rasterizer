@@ -8,7 +8,8 @@ public class Log {
 	private static FileWriter outfile;
 	
 	public static void init() throws IOException {
-		outfile = new FileWriter(new File("c:/java.obj"));
+		String localdir =  System.getProperty("user.dir").replaceAll("\\\\", "/");
+		outfile = new FileWriter(new File(localdir + "/log.log"));
 	}
 
 	

@@ -113,13 +113,11 @@ public class OBJLoader {
 		objfilereader.close();
 		
 		// Convert to lists
-		Vertex[] vertcies;
-		vertcies = new Vertex[vertlist.size()];
+		Vertex[] vertcies = new Vertex[vertlist.size()];
 		for (int i=0; i<vertlist.size(); i++)
 			vertcies[i] = vertlist.get(i);
 		
-		Face[] faces;
-		faces = new Face[facelist.size()];
+		Face[] faces = new Face[facelist.size()];
 		for (int i=0; i<facelist.size(); i++)
 			faces[i] = facelist.get(i);
 		
@@ -137,4 +135,6 @@ public class OBJLoader {
 		normal.z = (u.x * v.y) - (u.y * v.x);
 		return normal;
 	}
+	
+	//TOOD: Method to create triangular faces out of list of verts and UVs
 }

@@ -7,61 +7,61 @@ import engine.math.Matrix;
 import engine.math.Vector3;
 
 public class Mesh {
-	private Vertex[] vertcies;
+	private Vertex[] 
+			vertcies,
+			transformedvertcies;
 	private Face[] faces;
 	public Vector3 
 	position = Vector3.zero.Clone(),
 	rotation = new Vector3(0.00001f, 0.00001f, 0.00001f),
 	scale = new Vector3(1);
-	public Texture texture;
+	public Texture texture = Texture.error;
 	
 	public Matrix worldmatrix;
 	
 	public Mesh(Vertex[] verticies, Face[] faces, Texture tex) {
-		worldmatrix = Matrix.RotationYawPitchRoll(rotation.y, rotation.x, rotation.z).multiply(Matrix.translation(position.x, position.y, position.z));
 		this.vertcies = verticies;
+		transformedvertcies = new Vertex[vertcies.length];
+		for (int i=0; i<vertcies.length; i++) {
+			Vertex vertex = vertcies[i];
+			transformedvertcies[i] = new Vertex(vertex.position.Clone(), vertex.textureCoordinates);
+		}
+			
 		this.faces = faces;
 		this.texture = tex;
 
+		worldmatrix = Matrix.RotationYawPitchRoll(rotation.y, rotation.x, rotation.z).multiply(Matrix.translation(position.x, position.y, position.z));
 	}
 	
 	public void render(Renderer renderer, Camera cam) {
 		Matrix worldview = Matrix.multiply(worldmatrix, cam.viewMatrix);
 		Matrix transformmatrix = Matrix.multiply(worldview, renderer.projectionMatrix);
 		
-		Vertex[] transformedverts = getProjectedVertcies(transformmatrix, renderer.width, renderer.height);
-		
+		projectVertcies(transformmatrix, renderer.width, renderer.height);
+		Vector3 transformednormal = new Vector3(0,0,0);
 		for (Face face : faces) {
-			Vector3 transformednormal = transformmatrix.transformNormal(face.normal);
+			Matrix.transformNormal(face.normal, transformmatrix, transformednormal);
 			if (transformednormal.z >= 0)
 				continue;
 			
 			
 			renderer.drawTriangle(
-					transformedverts[face.vertex1],
-					transformedverts[face.vertex2],
-					transformedverts[face.vertex3],
+					transformedvertcies[face.vertex1],
+					transformedvertcies[face.vertex2],
+					transformedvertcies[face.vertex3],
 					texture
 					);
 		}
 	}
 	
-	private Vertex[] getProjectedVertcies(Matrix m, int width, int height) {
-		Vertex[] transformedverts = new Vertex[vertcies.length];
+	private void projectVertcies(Matrix m, int width, int height) {
 		Matrix a = Matrix.scaling(width, -height, 1);
 		Matrix b = Matrix.translation(width / 2, height / 2, 1);
-		m = Matrix.multiply(m, a).multiply(b);
+		m = m.Clone().multiply(a).multiply(b);
 		
 		for (int i=0; i<vertcies.length; i++) {
-			Vertex vert = vertcies[i];
-			Vector3 point2d = m.transformCoordinates(vert.position);
-			
-			transformedverts[i] = new Vertex(
-					point2d,
-					vert.textureCoordinates
-					);
+			Matrix.transformCoordinates(vertcies[i].position, m, transformedvertcies[i].position);
 		}
-		return transformedverts;
 	}
 	
 	public Vector3 getPosition() {

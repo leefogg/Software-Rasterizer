@@ -10,7 +10,7 @@ public class Color {
 	alpha = new Color(0,0,0,0);
 	
 	//TODO: subtractive and additive modes
-	public float r, g, b, a = 1;
+	public float r, g, b, a;
 	
 	public Color(){}
 
@@ -51,17 +51,17 @@ public class Color {
 	public void set(int argb) {
 		set(
 				(argb >> 24) & 0xFF,
-				argb & 0xFF,
+				(argb >> 16) & 0xFF,
 				(argb >> 8) & 0xFF,
-				(argb >> 16) & 0xFF
+				argb & 0xFF
 			);	
 	}
 	public void set(int a, int r, int g, int b) {
 		set(
-			(float)(a / 255f),
-			(float)(r / 255f),
-			(float)(g / 255f),
-			(float)(b / 255f)
+			(float)a / 255f,
+			(float)r / 255f,
+			(float)g / 255f,
+			(float)b / 255f
 		);
 	}
 	public void set(int r, int g, int b) {
@@ -95,12 +95,13 @@ public class Color {
 		this.r = c.r;
 		this.g = c.g;
 		this.b = c.b; 
+		this.a = c.a;
 	}
 	
 	public Color add(Color c) {
-		r += c.r * c.a;
-		g += c.g * c.a;
-		b += c.b * c.a;
+		r += c.r;
+		g += c.g;
+		b += c.b;
 		a += c.a;
 		return this;
 	}
@@ -109,6 +110,7 @@ public class Color {
 		r -= c.r;
 		g -= c.g;
 		b -= c.b;
+		a -= c.a;
 		return this;
 	}
 	
@@ -116,6 +118,7 @@ public class Color {
 		r *= c.r;
 		g *= c.g;
 		b *= c.b;
+		a *= c.a;
 		return this;
 	}
 	
@@ -123,6 +126,7 @@ public class Color {
 		r *= scale;
 		g *= scale;
 		b *= scale;
+		a *= scale;
 		return this;
 	}
 	
@@ -146,6 +150,21 @@ public class Color {
 		b = Math.min(1, Math.max(0, b));
 	}
 	
+	public void normalize() {
+		float max = r;
+		if (g > max)
+			max = g;
+		if (b > max)
+			max = b;
+		if (a > max)
+			max = a;
+		
+		r /= max;
+		g /= max;
+		b /= max;
+		a /= max;
+	}
+	
 	
 	public static boolean hasAlpha(int argb) {
 		return ((argb >> 24) & 0xFF) < 255;
@@ -156,6 +175,13 @@ public class Color {
 		return new Color(a,r,g,b);
 	}
 	
+	public void clone(Color c) {
+		c.a = a;
+		c.r = r;
+		c.g = g;
+		c.b = b;
+	}
+	
 	public java.awt.Color toColor() {
 		return new java.awt.Color(r,g,b);
 	}
@@ -163,12 +189,12 @@ public class Color {
 	public int toARGB() {
 		ensureScale();
 		int
-		a = (int)this.a,
+		a = (int)(this.a * 255f),
 		r = (int)(this.r * 255f),
 		g = (int)(this.g * 255f),
 		b = (int)(this.b * 255f);
 		
-		return (0xFF << 24) | (b << 16) | (g << 8) | r; 
+		return (a << 24) | (r << 16) | (g << 8) | b; 
 	}
 	
 	private float invertChannel(float a) {

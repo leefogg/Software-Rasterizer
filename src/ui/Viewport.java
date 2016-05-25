@@ -5,7 +5,10 @@ import java.awt.Graphics2D;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferStrategy;
+import java.io.File;
 import java.io.IOException;
+
+import javax.imageio.ImageIO;
 
 import engine.Camera;
 import engine.ImageTexture;
@@ -41,9 +44,9 @@ public class Viewport extends Canvas implements MouseWheelListener {
 		
 		try {
 			Log.init();
-		} catch (IOException e1) {
+		} catch (IOException e) {
 			System.err.println("Failed to open log file for writing.");
-			e1.printStackTrace();
+			e.printStackTrace();
 		}
 
 		renderer = new Renderer();
@@ -58,8 +61,6 @@ public class Viewport extends Canvas implements MouseWheelListener {
 			renderer.addMesh(floor);
 			Mesh cube = OBJLoader.load(localdir + "/res/glados.obj");
 			cube.setPosition(new Vector3(0,1,0));
-//			cube.texture.repeatX = 25;
-//			cube.texture.repeatY = 25;
 			renderer.addMesh(cube);
 			
 		} catch (Exception e) {
@@ -68,9 +69,6 @@ public class Viewport extends Canvas implements MouseWheelListener {
 			System.exit(1);
 		}
 		
-		
-
-
 		Graphics2D graphics = (Graphics2D)buffer.getDrawGraphics();
 		while(true) {
 			tick();
@@ -82,7 +80,7 @@ public class Viewport extends Canvas implements MouseWheelListener {
 			graphics.drawImage(renderer.output, 0, 0, getWidth(), getHeight(), this);
 
 			graphics.setColor(Color.green);
-			graphics.drawString(String.valueOf(fc.fps), 5, 15);
+			graphics.drawString(String.valueOf(fc.fps) + "FPS", 5, 15);
 
 			if(!buffer.contentsLost())
 				buffer.show();

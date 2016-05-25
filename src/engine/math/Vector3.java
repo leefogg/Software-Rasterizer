@@ -142,6 +142,11 @@ public class Vector3 {
 	}
 	
 	public Vector3 Clone() {return new Vector3(x, y, z);}
+	public void Clone(Vector3 vector) {
+		vector.x = x;
+		vector.y = y;
+		vector.z = z;
+	}
 	
 	@Override
 	public String toString() {
