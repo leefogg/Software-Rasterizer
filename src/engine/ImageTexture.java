@@ -61,4 +61,16 @@ public final class ImageTexture extends Texture {
 		Color pixel = pixels[v*width + u];
 		return pixel;
 	}
+
+	@Override
+	public BufferedImage toBufferedImage() {
+		BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+		for (int y=0; y<height; y++) {
+			for (int x=0; x<width; x++) {
+				image.setRGB(x, y, pixels[y*width + x].toARGB());
+			}
+		}
+		
+		return image;
+	}
 }
