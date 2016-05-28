@@ -7,22 +7,22 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 
 import engine.Camera;
-import engine.ImageTexture;
-import engine.Renderer;
+import engine.Rasterizer;
 import engine.math.Matrix;
 import engine.math.Vector3;
+import engine.models.Materials.ImageTexture;
 
 public class Mesh {
-	private Vertex[] 
+	public Vertex[] 
 			vertcies,
 			transformedvertcies;
-	private Face[] faces;
+	public Face[] faces;
 	private Vector3 
 	position = Vector3.zero.Clone(),
 	rotation = new Vector3(0.00001f, 0.00001f, 0.00001f);
 	public Texture texture = Texture.error;
 	
-	private Matrix worldmatrix;
+	public Matrix worldmatrix;
 	
 	public Mesh(Vertex[] verticies, Face[] faces, Texture tex) {
 		this.vertcies = verticies;
@@ -38,35 +38,9 @@ public class Mesh {
 		worldmatrix = Matrix.RotationYawPitchRoll(rotation.y, rotation.x, rotation.z).multiply(Matrix.translation(position.x, position.y, position.z));
 	}
 	
-	public void render(Renderer renderer, Camera cam) {
-		Matrix worldview = Matrix.multiply(worldmatrix, cam.viewMatrix);
-		Matrix transformmatrix = Matrix.multiply(worldview, renderer.projectionMatrix);
-		
-		projectVertcies(transformmatrix, renderer.width, renderer.height);
-		Vector3 transformednormal = new Vector3(0,0,0);
-		for (Face face : faces) {
-			Matrix.transformNormal(face.normal, transformmatrix, transformednormal);
-			if (transformednormal.z < 0)
-				continue;
-			
-			
-			renderer.drawTriangle(
-					transformedvertcies[face.vertex1],
-					transformedvertcies[face.vertex2],
-					transformedvertcies[face.vertex3],
-					texture
-					);
-		}
-	}
-	
-	private void projectVertcies(Matrix m, int width, int height) {
-		Matrix a = Matrix.scaling(-width, -height, 1);
-		Matrix screencentre = Matrix.translation(width / 2, height / 2, 1);
-		m = m.Clone().multiply(screencentre);
-		
-		for (int i=0; i<vertcies.length; i++) {
-			Matrix.transformCoordinates(vertcies[i].position, m, transformedvertcies[i].position);
-		}
+	public void projectVertcies(Matrix transformmatrix) {
+		for (int i=0; i<vertcies.length; i++)
+			Matrix.transformCoordinates(vertcies[i].position, transformmatrix, transformedvertcies[i].position);
 	}
 	
 	public Vector3 getPosition() {

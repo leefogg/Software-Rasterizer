@@ -7,11 +7,12 @@ import java.util.ArrayList;
 import engine.math.Color;
 import engine.math.Matrix;
 import engine.math.Vector3;
+import engine.models.Face;
 import engine.models.Mesh;
 import engine.models.Texture;
 import engine.models.Vertex;
 
-public class Renderer {
+public class Rasterizer {
 	private class OrganizedTriangle {
 		float
 		ua, ub, uc, ud,
@@ -25,28 +26,31 @@ public class Renderer {
 	private float[] depthBuffer;
 	
 	public ArrayList<Mesh> meshes = new ArrayList<Mesh>();
-	public Matrix projectionMatrix;
+	public Matrix 
+	projectionMatrix,
+	screenmatrix;
 	
-	public Renderer() {
+	public Rasterizer() {
 		this(320, 240);
 	}
 	
-	public Renderer(int width, int height) {
+	public Rasterizer(int width, int height) {
 		this(new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB));
 	}
-	public Renderer(BufferedImage buffer) {
+	public Rasterizer(BufferedImage buffer) {
 		framebuffer = buffer;
 		
 		this.width = framebuffer.getWidth();
 		this.height = framebuffer.getHeight();
 		
 		pixels = new Color[width * height];
+		depthBuffer = new float[pixels.length];
 		for (int i=0; i<pixels.length; i++)
 			pixels[i] = new Color(0x00000000); // TODO: Set void color
 			
 		projectionMatrix = Matrix.PerspectiveFovLH(0.78f, (float)width / (float)height, 0.01f, 1f);
+		screenmatrix = Matrix.scaling(-width, -height, 1).multiply(Matrix.translation(width / 2, height / 2, 1));
 		
-		depthBuffer = new float[pixels.length];
 		
 		clearDepthBuffer();
 	}
@@ -69,13 +73,6 @@ public class Renderer {
 	}
 	
 	
-	public void render(Camera cam) {
-		for (Mesh mesh : meshes)
-			mesh.render(this, cam);
-		
-		//System.out.println("Max:" + maxdepth + ", min:" + mindepth);
-		// TODO: Get real distance from camera
-	}
 	
 	public void swapBuffers() {
 		int[] outputpixels = ((DataBufferInt)framebuffer.getRaster().getDataBuffer()).getData(); // Pointer to buffer
@@ -84,7 +81,6 @@ public class Renderer {
 	}
 	
 	public BufferedImage getFrameBuffer() {
-		System.out.println(maxdepth);
 		return framebuffer; 
 	}
 	
@@ -99,6 +95,37 @@ public class Renderer {
 		}
 		
 		return depthbuffer;
+	}
+	
+	public void render(Camera cam) {
+		for (Mesh mesh : meshes)
+			render(mesh, cam);
+		
+		//System.out.println("Max:" + maxdepth + ", min:" + mindepth);
+		// TODO: Get real distance from camera
+	}
+	
+	private void render(Mesh mesh, Camera cam) {		
+		Matrix worldview = Matrix.multiply(mesh.worldmatrix, cam.viewMatrix);
+		Matrix transformmatrix = Matrix.multiply(worldview, projectionMatrix);
+		
+		transformmatrix.multiply(screenmatrix);
+		
+		mesh.projectVertcies(transformmatrix);
+		
+		Vector3 transformednormal = new Vector3(0,0,0);
+		for (Face face : mesh.faces) {
+			Matrix.transformNormal(face.normal, transformmatrix, transformednormal);
+			if (transformednormal.z > 0)
+				continue;
+			
+			drawTriangle(
+					mesh.transformedvertcies[face.vertex1],
+					mesh.transformedvertcies[face.vertex2],
+					mesh.transformedvertcies[face.vertex3],
+					mesh.texture
+					);
+		}
 	}
 	
 	//TODO: Create fragment class containing all vertcies, UVs, Texture, depth and resulting pixel color

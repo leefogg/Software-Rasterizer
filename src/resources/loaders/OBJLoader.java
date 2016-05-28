@@ -7,8 +7,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
-import engine.ColorTexture;
-import engine.ImageTexture;
 import engine.math.Color;
 import engine.math.Vector3;
 import engine.models.Face;
@@ -16,6 +14,8 @@ import engine.models.Mesh;
 import engine.models.Texture;
 import engine.models.UVSet;
 import engine.models.Vertex;
+import engine.models.Materials.ColorTexture;
+import engine.models.Materials.ImageTexture;
 import utils.Log;
 
 public class OBJLoader {
@@ -106,7 +106,7 @@ public class OBJLoader {
 						v1.position,
 						v2.position,
 						v3.position
-						);
+						).normalize();
 				
 				facelist.add(newface);
 				

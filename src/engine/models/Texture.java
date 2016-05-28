@@ -2,8 +2,8 @@ package engine.models;
 
 import java.awt.image.BufferedImage;
 
-import engine.ColorTexture;
 import engine.math.Color;
+import engine.models.Materials.ColorTexture;
 
 public abstract class Texture {
 	public static final ColorTexture error = new ColorTexture(new Color(java.awt.Color.magenta));

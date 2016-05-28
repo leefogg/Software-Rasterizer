@@ -30,6 +30,10 @@ public class Camera {
 		Matrix.lookAtLH(position, target, Vector3.up, viewMatrix);
 	}
 	
+	public Vector3 getAimDirection() {
+		return target.Clone().subtract(position).normalize();
+	}
+	
 	public Camera Clone() {
 		return new Camera(position, target);
 	}

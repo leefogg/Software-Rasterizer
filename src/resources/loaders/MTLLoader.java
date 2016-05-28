@@ -7,9 +7,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
-import engine.ImageTexture;
 import engine.math.Color;
 import engine.models.Material;
+import engine.models.Materials.ImageTexture;
 
 public final class MTLLoader {
 

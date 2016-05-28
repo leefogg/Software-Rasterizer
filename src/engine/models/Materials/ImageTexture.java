@@ -1,4 +1,4 @@
-package engine;
+package engine.models.Materials;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
