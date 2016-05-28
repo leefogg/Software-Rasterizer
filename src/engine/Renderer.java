@@ -20,7 +20,7 @@ public class Renderer {
 	private OrganizedTriangle triangle = new OrganizedTriangle();
 	
 	public int width, height;
-	public BufferedImage output;
+	private BufferedImage framebuffer;
 	private Color[] pixels;
 	private float[] depthBuffer;
 	
@@ -35,10 +35,10 @@ public class Renderer {
 		this(new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB));
 	}
 	public Renderer(BufferedImage buffer) {
-		output = buffer;
+		framebuffer = buffer;
 		
-		this.width = output.getWidth();
-		this.height = output.getHeight();
+		this.width = framebuffer.getWidth();
+		this.height = framebuffer.getHeight();
 		
 		pixels = new Color[width * height];
 		for (int i=0; i<pixels.length; i++)
@@ -58,7 +58,7 @@ public class Renderer {
 	
 	//TODO: Make all static like OpenGL
 	
-	public void clearBuffer() {		
+	public void clearFrameBuffer() {		
 		for (Color c : pixels)
 			c.set(0x00000000); // TODO: Set void color
 	}
@@ -78,16 +78,33 @@ public class Renderer {
 	}
 	
 	public void swapBuffers() {
-		int[] outputpixels = ((DataBufferInt)output.getRaster().getDataBuffer()).getData(); // Pointer to buffer
+		int[] outputpixels = ((DataBufferInt)framebuffer.getRaster().getDataBuffer()).getData(); // Pointer to buffer
 		for (int i=0; i<pixels.length; i++)
 			outputpixels[i] = pixels[i].toARGB();		
+	}
+	
+	public BufferedImage getFrameBuffer() {
+		System.out.println(maxdepth);
+		return framebuffer; 
+	}
+	
+	public BufferedImage getDepthBuffer() {
+		BufferedImage depthbuffer = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
+		for (int y=0; y<height; y++) {
+			for (int x=0; x<width; x++) {
+				int depth = (int)map(depthBuffer[y*width + x], mindepth, maxdepth, 255, 0);
+				int rgb = (0xFF << 24) | (depth << 16) | (depth << 8) | depth;
+				depthbuffer.setRGB(x, y, rgb);
+			}
+		}
+		
+		return depthbuffer;
 	}
 	
 	//TODO: Create fragment class containing all vertcies, UVs, Texture, depth and resulting pixel color
 	public void drawTriangle(Vertex v1, Vertex v2, Vertex v3, Texture texture) {
 		if (isInBounds(v1.position) || isInBounds(v2.position) || isInBounds(v3.position)) {
 			// Sort verts by height, v1 at top
-			//TODO: Optimise
 			if (v1.position.y > v2.position.y) {
 				Vertex temp = v2;
 				v2 = v1;
@@ -331,6 +348,7 @@ public class Renderer {
 		if (depthBuffer[pixelindex] < z) 
 			return;
 		
+		//TODO: Add znear and zfar
 		if (z > maxdepth) maxdepth = z;
 		if (z < mindepth) mindepth = z;
 		
@@ -363,8 +381,12 @@ public class Renderer {
 		return min + (max - min) * clamp(gradient);
 	}
 	
+	private float map(float x, float in_min, float in_max, float out_min, float out_max) {
+	  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+	}
+	
 	public void dispose() {
-		output.flush();
+		framebuffer.flush();
 		meshes.clear();
 	}
 }

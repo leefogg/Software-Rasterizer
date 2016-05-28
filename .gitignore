@@ -68,3 +68,7 @@ bin
 backup
 Insperation
 *.log
+/.settings
+src/ui
+src/utils
+

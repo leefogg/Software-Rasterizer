@@ -10,7 +10,7 @@ public class Color {
 	alpha = new Color(0,0,0,0);
 	
 	//TODO: subtractive and additive modes
-	public float r, g, b, a;
+	public float r, g, b, a; // TODO: Convert to int
 	
 	public Color(){}
 	

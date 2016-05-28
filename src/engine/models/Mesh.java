@@ -46,7 +46,7 @@ public class Mesh {
 		Vector3 transformednormal = new Vector3(0,0,0);
 		for (Face face : faces) {
 			Matrix.transformNormal(face.normal, transformmatrix, transformednormal);
-			if (transformednormal.z >= 0)
+			if (transformednormal.z < 0)
 				continue;
 			
 			
@@ -60,9 +60,9 @@ public class Mesh {
 	}
 	
 	private void projectVertcies(Matrix m, int width, int height) {
-		Matrix a = Matrix.scaling(width, -height, 1);
-		Matrix b = Matrix.translation(width / 2, height / 2, 1);
-		m = m.Clone().multiply(a).multiply(b);
+		Matrix a = Matrix.scaling(-width, -height, 1);
+		Matrix screencentre = Matrix.translation(width / 2, height / 2, 1);
+		m = m.Clone().multiply(screencentre);
 		
 		for (int i=0; i<vertcies.length; i++) {
 			Matrix.transformCoordinates(vertcies[i].position, m, transformedvertcies[i].position);
@@ -76,6 +76,8 @@ public class Mesh {
 	public Vector3 getRotation() {
 		return rotation.Clone();
 	}
+	
+	//TODO: Add methods to transform raw vert's positions
 	
 	public void setPosition(Vector3 pos) {
 		position = pos;
@@ -97,15 +99,7 @@ public class Mesh {
 			width = tex.getWidth();
 			height = tex.getHeight();
 		}
-		BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-		
-		float u = 0, v=0;
-		for (int y=0; y<height; y++, v += 1f/height) {
-			u = 0;
-			for (int x=0; x<width; x++, u += 1f/width) {
-				image.setRGB(x, y, texture.map(u, v).toARGB());
-			}
-		}
+		BufferedImage image = texture.toBufferedImage();
 		
 		
 		java.awt.Graphics canvas = image.createGraphics();
