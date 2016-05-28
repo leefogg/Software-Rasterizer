@@ -1,6 +1,7 @@
 package engine;
 
 import engine.math.Color;
+import engine.models.Texture;
 
 public final class ColorTexture extends Texture {
 	private Color color;

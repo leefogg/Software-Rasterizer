@@ -13,6 +13,10 @@ public class Color {
 	public float r, g, b, a;
 	
 	public Color(){}
+	
+	public Color(java.awt.Color color) {
+		set(color.getRGB());
+	}
 
 	public Color(int argb) {
 		set(argb);	

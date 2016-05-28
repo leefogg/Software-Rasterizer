@@ -1,8 +1,14 @@
-package engine;
+package engine.models;
 
+import java.awt.image.BufferedImage;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import javax.imageio.ImageIO;
+
+import engine.Camera;
+import engine.ImageTexture;
+import engine.Renderer;
 import engine.math.Matrix;
 import engine.math.Vector3;
 
@@ -11,13 +17,12 @@ public class Mesh {
 			vertcies,
 			transformedvertcies;
 	private Face[] faces;
-	public Vector3 
+	private Vector3 
 	position = Vector3.zero.Clone(),
-	rotation = new Vector3(0.00001f, 0.00001f, 0.00001f),
-	scale = new Vector3(1);
+	rotation = new Vector3(0.00001f, 0.00001f, 0.00001f);
 	public Texture texture = Texture.error;
 	
-	public Matrix worldmatrix;
+	private Matrix worldmatrix;
 	
 	public Mesh(Vertex[] verticies, Face[] faces, Texture tex) {
 		this.vertcies = verticies;
@@ -72,29 +77,65 @@ public class Mesh {
 		return rotation.Clone();
 	}
 	
-	public Vector3 getScale() {
-		return scale.Clone();
-	}
-	
 	public void setPosition(Vector3 pos) {
 		position = pos;
 		worldmatrix = Matrix.RotationYawPitchRoll(rotation.y, rotation.x, rotation.z)
-				.multiply(Matrix.translation(position.x, position.y, position.z))
-				.multiply(Matrix.scaling(scale.x, scale.y, scale.z));
+				.multiply(Matrix.translation(position.x, position.y, position.z));
 	}
 	
 	public void setRotation(Vector3 rot) {
 		rotation = rot;
 		worldmatrix = Matrix.RotationYawPitchRoll(rotation.y, rotation.x, rotation.z)
-				.multiply(Matrix.translation(position.x, position.y, position.z))
-				.multiply(Matrix.scaling(scale.x, scale.y, scale.z));
+				.multiply(Matrix.translation(position.x, position.y, position.z));
 	}
 	
-	public void setScale(Vector3 scale) {
-		this.scale = scale;
-		worldmatrix = Matrix.RotationYawPitchRoll(rotation.y, rotation.x, rotation.z)
-				.multiply(Matrix.translation(position.x, position.y, position.z))
-				.multiply(Matrix.scaling(scale.x, scale.y, scale.z));
+	public void debugUVs(String imagepath) throws IOException {
+		int width = 1;
+		int height = 1;
+		if (texture instanceof ImageTexture) {
+			ImageTexture tex = (ImageTexture)texture;
+			width = tex.getWidth();
+			height = tex.getHeight();
+		}
+		BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+		
+		float u = 0, v=0;
+		for (int y=0; y<height; y++, v += 1f/height) {
+			u = 0;
+			for (int x=0; x<width; x++, u += 1f/width) {
+				image.setRGB(x, y, texture.map(u, v).toARGB());
+			}
+		}
+		
+		
+		java.awt.Graphics canvas = image.createGraphics();
+		canvas.setColor(java.awt.Color.black);
+		for (Face f : faces) {
+			UVSet va = vertcies[f.vertex1].textureCoordinates;
+			UVSet vb = vertcies[f.vertex2].textureCoordinates;
+			UVSet vc = vertcies[f.vertex3].textureCoordinates;
+			canvas.drawLine(
+					(int)(va.u*width),
+					(int)(va.v*height),
+					(int)(vb.u*width),
+					(int)(vb.v*height)
+			);
+			canvas.drawLine(
+					(int)(vb.u*width),
+					(int)(vb.v*height),
+					(int)(vc.u*width),
+					(int)(vc.v*height)
+			);
+			canvas.drawLine(
+					(int)(vc.u*width),
+					(int)(vc.v*height),
+					(int)(va.u*width),
+					(int)(va.v*height)
+			);
+		}
+		
+		String extention = imagepath.substring(imagepath.lastIndexOf(".")+1);
+		ImageIO.write(image, extention, new java.io.File(imagepath));
 	}
 	
 	public void writeOBJ(FileWriter file) throws IOException {
@@ -113,5 +154,4 @@ public class Mesh {
 		file.flush();
 		file.close();
 	}
-		
 }

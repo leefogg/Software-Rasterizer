@@ -8,8 +8,8 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 import engine.ImageTexture;
-import engine.Material;
 import engine.math.Color;
+import engine.models.Material;
 
 public final class MTLLoader {
 

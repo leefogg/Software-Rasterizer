@@ -1,4 +1,4 @@
-package engine;
+package engine.models;
 
 import engine.math.Vector3;
 

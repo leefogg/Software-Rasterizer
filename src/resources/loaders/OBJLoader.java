@@ -8,21 +8,22 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 import engine.ColorTexture;
-import engine.Face;
 import engine.ImageTexture;
-import engine.Mesh;
-import engine.Texture;
-import engine.Vertex;
 import engine.math.Color;
 import engine.math.Vector3;
+import engine.models.Face;
+import engine.models.Mesh;
+import engine.models.Texture;
+import engine.models.UVSet;
+import engine.models.Vertex;
 import utils.Log;
 
 public class OBJLoader {
-	public static Mesh load(String path) throws IOException, MalformException {
+	public static Mesh load(String path) throws IOException, MalformException, IndexOutOfBoundsException {
 		Texture texture = ColorTexture.error;
 		ArrayList<Face> facelist = new ArrayList<Face>(100);
 		ArrayList<Vertex> vertlist = new ArrayList<Vertex>(100);
-		ArrayList<Vector3> uvlist = new ArrayList<Vector3>(100);
+		ArrayList<UVSet> uvlist = new ArrayList<UVSet>(100);
 		
 		BufferedReader objfilereader = new BufferedReader(new InputStreamReader(new DataInputStream(new FileInputStream(path))));
 		while(!objfilereader.ready()){}
@@ -59,29 +60,37 @@ public class OBJLoader {
 			
 			} else if (line.startsWith("vt ")) {
 				String[] values = line.substring(3).split(" ");
-				uvlist.add(new Vector3(
+				uvlist.add(new UVSet(
 							Float.valueOf(values[0]),
-							Float.valueOf(values[1]),
-							0
+							Float.valueOf(values[1])
 						));
 					
 			} else if (line.startsWith("f ")) {
 				String[] components = line.substring(2).split(" ");
-				if (components.length > 3) {
+				if (components.length != 3) {
 					Log.writeLine("Non-triangle face detected. Unsuported face type");
 					throw new MalformException("Unsuported face type (" + components.length + ")");
 				}
 				
-				//TODO: Make more efficient than splitting lots
 				int[] indicies = new int[6]; {
 					int i=0;
 					for (String component : components) {
 						String[] subcomponents = component.split("/"); 
 						indicies[i] = Integer.valueOf(subcomponents[0])-1;// Add vertex indexes
-						indicies[i+3] = Integer.valueOf(component.split("/")[1])-1; // Add U, V indexes
+						if (subcomponents.length > 1) {
+							if (subcomponents[1].length() != 0)
+								indicies[i+3] = Integer.valueOf(subcomponents[1])-1; // Add U, V indexes
+						}
 						i++;
 					}
 				}
+				
+				if (indicies[0] > vertlist.size())
+					throw new IndexOutOfBoundsException("Pointer to undefined Vertex (" + indicies[3] + ") on line " + line + ".");
+				if (indicies[1] > vertlist.size())
+					throw new IndexOutOfBoundsException("Pointer to undefined Vertex (" + indicies[4] + ") on line " + line + ".");
+				if (indicies[2] > vertlist.size())
+					throw new IndexOutOfBoundsException("Pointer to undefined Vertex (" + indicies[5] + ") on line " + line + ".");
 				
 				Vertex 
 				v1 = vertlist.get(indicies[0]),
@@ -101,10 +110,26 @@ public class OBJLoader {
 				
 				facelist.add(newface);
 				
-				v1.textureCoordinates = uvlist.get(indicies[3]);
-				v2.textureCoordinates = uvlist.get(indicies[4]);
-				v3.textureCoordinates = uvlist.get(indicies[5]);
-			} else if (line.startsWith("tex")) {
+				if (!uvlist.isEmpty()) {
+					if (indicies[3] > uvlist.size())
+						throw new IndexOutOfBoundsException("Pointer to undefined UV coordinate (" + indicies[3] + ") on line " + line + ".");
+					if (indicies[4] > uvlist.size())
+						throw new IndexOutOfBoundsException("Pointer to undefined UV coordinate (" + indicies[4] + ") on line " + line + ".");
+					if (indicies[5] > uvlist.size())
+						throw new IndexOutOfBoundsException("Pointer to undefined UV coordinate (" + indicies[5] + ") on line " + line + ".");
+					
+					if (v1.textureCoordinates != UVSet.zero)
+						Log.write("Redefinition of UV for vertex " +indicies[0] + ".");
+					if (v2.textureCoordinates != UVSet.zero)
+						Log.write("Redefinition of UV for vertex " +indicies[1] + ".");
+					if (v3.textureCoordinates != UVSet.zero)
+						Log.write("Redefinition of UV for vertex " +indicies[2] + ".");
+					
+					v1.textureCoordinates = uvlist.get(indicies[3]);
+					v2.textureCoordinates = uvlist.get(indicies[4]);
+					v3.textureCoordinates = uvlist.get(indicies[5]);
+				}
+			} else if (line.startsWith("tex")) { // Just for testing, not actually part of the spec
 				String folder = path.substring(0, path.lastIndexOf("/") + 1);
 				texture = new ImageTexture(folder + line.substring(4));
 			}

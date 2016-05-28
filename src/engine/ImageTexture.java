@@ -7,6 +7,7 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 
 import engine.math.Color;
+import engine.models.Texture;
 
 public final class ImageTexture extends Texture {
 

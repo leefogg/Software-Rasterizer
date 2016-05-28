@@ -1,6 +1,5 @@
 package engine;
 
-import java.awt.GraphicsEnvironment;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.util.ArrayList;
@@ -8,6 +7,9 @@ import java.util.ArrayList;
 import engine.math.Color;
 import engine.math.Matrix;
 import engine.math.Vector3;
+import engine.models.Mesh;
+import engine.models.Texture;
+import engine.models.Vertex;
 
 public class Renderer {
 	private class OrganizedTriangle {
@@ -81,7 +83,7 @@ public class Renderer {
 			outputpixels[i] = pixels[i].toARGB();		
 	}
 	
-	
+	//TODO: Create fragment class containing all vertcies, UVs, Texture, depth and resulting pixel color
 	public void drawTriangle(Vertex v1, Vertex v2, Vertex v3, Texture texture) {
 		if (isInBounds(v1.position) || isInBounds(v2.position) || isInBounds(v3.position)) {
 			// Sort verts by height, v1 at top
@@ -122,27 +124,27 @@ public class Renderer {
 			if (toptomiddlexslope > toptobottomxslope) {
 				for (int scanline = top; scanline < bottom; scanline++) {
 					if (scanline < middle) {
-						triangle.ua = v1.textureCoordinates.x;
-						triangle.ub = v3.textureCoordinates.x;
-						triangle.uc = v1.textureCoordinates.x;
-						triangle.ud = v2.textureCoordinates.x;
+						triangle.ua = v1.textureCoordinates.getU();
+						triangle.ub = v3.textureCoordinates.getU();
+						triangle.uc = v1.textureCoordinates.getU();
+						triangle.ud = v2.textureCoordinates.getU();
 						
-						triangle.va = v1.textureCoordinates.y;
-						triangle.vb = v3.textureCoordinates.y;
-						triangle.vc = v1.textureCoordinates.y;
-						triangle.vd = v2.textureCoordinates.y;
+						triangle.va = v1.textureCoordinates.getV();
+						triangle.vb = v3.textureCoordinates.getV();
+						triangle.vc = v1.textureCoordinates.getV();
+						triangle.vd = v2.textureCoordinates.getV();
 						
 						processScanline(scanline, triangle, v1, v3, v1, v2, texture);
 					} else {
-						triangle.ua = v1.textureCoordinates.x;
-						triangle.ub = v3.textureCoordinates.x;
-						triangle.uc = v2.textureCoordinates.x;
-						triangle.ud = v3.textureCoordinates.x;
+						triangle.ua = v1.textureCoordinates.getU();
+						triangle.ub = v3.textureCoordinates.getU();
+						triangle.uc = v2.textureCoordinates.getU();
+						triangle.ud = v3.textureCoordinates.getU();
 						
-						triangle.va = v1.textureCoordinates.y;
-						triangle.vb = v3.textureCoordinates.y;
-						triangle.vc = v2.textureCoordinates.y;
-						triangle.vd = v3.textureCoordinates.y;
+						triangle.va = v1.textureCoordinates.getV();
+						triangle.vb = v3.textureCoordinates.getV();
+						triangle.vc = v2.textureCoordinates.getV();
+						triangle.vd = v3.textureCoordinates.getV();
 						
 						processScanline(scanline, triangle, v1, v3, v2, v3, texture);
 					}
@@ -150,27 +152,27 @@ public class Renderer {
 			} else {
 				for (int scanline = top; scanline < bottom; scanline++) {
 					if (scanline < middle) {
-						triangle.ua = v1.textureCoordinates.x;
-						triangle.ub = v2.textureCoordinates.x;
-						triangle.uc = v1.textureCoordinates.x;
-						triangle.ud = v3.textureCoordinates.x;
+						triangle.ua = v1.textureCoordinates.getU();
+						triangle.ub = v2.textureCoordinates.getU();
+						triangle.uc = v1.textureCoordinates.getU();
+						triangle.ud = v3.textureCoordinates.getU();
 						
-						triangle.va = v1.textureCoordinates.y;
-						triangle.vb = v2.textureCoordinates.y;
-						triangle.vc = v1.textureCoordinates.y;
-						triangle.vd = v3.textureCoordinates.y;
+						triangle.va = v1.textureCoordinates.getV();
+						triangle.vb = v2.textureCoordinates.getV();
+						triangle.vc = v1.textureCoordinates.getV();
+						triangle.vd = v3.textureCoordinates.getV();
 						
 						processScanline(scanline, triangle, v1, v2, v1, v3, texture);
 					} else {
-						triangle.ua = v2.textureCoordinates.x;
-						triangle.ub = v3.textureCoordinates.x;
-						triangle.uc = v1.textureCoordinates.x;
-						triangle.ud = v3.textureCoordinates.x;
+						triangle.ua = v2.textureCoordinates.getU();
+						triangle.ub = v3.textureCoordinates.getU();
+						triangle.uc = v1.textureCoordinates.getU();
+						triangle.ud = v3.textureCoordinates.getU();
 						
-						triangle.va = v2.textureCoordinates.y;
-						triangle.vb = v3.textureCoordinates.y;
-						triangle.vc = v1.textureCoordinates.y;
-						triangle.vd = v3.textureCoordinates.y;
+						triangle.va = v2.textureCoordinates.getV();
+						triangle.vb = v3.textureCoordinates.getV();
+						triangle.vc = v1.textureCoordinates.getV();
+						triangle.vd = v3.textureCoordinates.getV();
 						
 						processScanline(scanline, triangle, v2, v3, v1, v3, texture);
 					}
@@ -334,7 +336,7 @@ public class Renderer {
 		
 		depthBuffer[pixelindex] = z;
 		// TOOD: Fix depth buffer values
-		pixels[pixelindex].add(color);
+		pixels[pixelindex].set(color);
 	}
 	
 	private boolean isInBounds(Vector3 point) {
@@ -354,9 +356,7 @@ public class Renderer {
 		return value;
 	}
 	private float clamp(float value) {
-		if (value > 1) return 1;
-		if (value < 0) return 0;
-		return value;
+		return clamp(value, 0, 1);
 	}
 	
 	private float interpolate(float min, float max, float gradient) {
