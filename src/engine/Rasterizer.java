@@ -109,6 +109,7 @@ public class Rasterizer {
 		Matrix worldview = Matrix.multiply(mesh.worldmatrix, cam.viewMatrix);
 		Matrix transformmatrix = Matrix.multiply(worldview, projectionMatrix);
 		
+		// Scale to screen size and move to middle
 		transformmatrix.multiply(screenmatrix);
 		
 		mesh.projectVertcies(transformmatrix);
@@ -125,103 +126,6 @@ public class Rasterizer {
 					mesh.transformedvertcies[face.vertex3],
 					mesh.texture
 					);
-		}
-	}
-	
-	//TODO: Create fragment class containing all vertcies, UVs, Texture, depth and resulting pixel color
-	public void drawTriangle(Vertex v1, Vertex v2, Vertex v3, Texture texture) {
-		if (isInBounds(v1.position) || isInBounds(v2.position) || isInBounds(v3.position)) {
-			// Sort verts by height, v1 at top
-			if (v1.position.y > v2.position.y) {
-				Vertex temp = v2;
-				v2 = v1;
-				v1 = temp;
-			}
-			
-			if (v2.position.y > v3.position.y) {
-				Vertex temp = v2;
-				v2 = v3;
-				v3 = temp;
-				
-				if (v1.position.y > v2.position.y) {
-					temp = v2;
-					v2 = v1;
-					v1 = temp;
-				}
-			}
-			
-			
-			Vector3 toppos = v1.position;
-			int top = (int)toppos.y;
-			if (top < 0)
-				top = 0;
-			Vector3 middlepos = v2.position;
-			int middle = (int)middlepos.y;
-			Vector3 bottompos = v3.position;
-			int bottom = (int)bottompos.y;
-			if (bottom > height)
-				bottom = height;
-			
-			float toptomiddlexslope = (middlepos.x - toppos.x) / (middlepos.y - toppos.y);
-			float toptobottomxslope = (bottompos.x - toppos.x) / (bottompos.y - toppos.y);
-
-			if (toptomiddlexslope > toptobottomxslope) {
-				for (int scanline = top; scanline < bottom; scanline++) {
-					if (scanline < middle) {
-						triangle.ua = v1.textureCoordinates.getU();
-						triangle.ub = v3.textureCoordinates.getU();
-						triangle.uc = v1.textureCoordinates.getU();
-						triangle.ud = v2.textureCoordinates.getU();
-						
-						triangle.va = v1.textureCoordinates.getV();
-						triangle.vb = v3.textureCoordinates.getV();
-						triangle.vc = v1.textureCoordinates.getV();
-						triangle.vd = v2.textureCoordinates.getV();
-						
-						processScanline(scanline, triangle, v1, v3, v1, v2, texture);
-					} else {
-						triangle.ua = v1.textureCoordinates.getU();
-						triangle.ub = v3.textureCoordinates.getU();
-						triangle.uc = v2.textureCoordinates.getU();
-						triangle.ud = v3.textureCoordinates.getU();
-						
-						triangle.va = v1.textureCoordinates.getV();
-						triangle.vb = v3.textureCoordinates.getV();
-						triangle.vc = v2.textureCoordinates.getV();
-						triangle.vd = v3.textureCoordinates.getV();
-						
-						processScanline(scanline, triangle, v1, v3, v2, v3, texture);
-					}
-				}
-			} else {
-				for (int scanline = top; scanline < bottom; scanline++) {
-					if (scanline < middle) {
-						triangle.ua = v1.textureCoordinates.getU();
-						triangle.ub = v2.textureCoordinates.getU();
-						triangle.uc = v1.textureCoordinates.getU();
-						triangle.ud = v3.textureCoordinates.getU();
-						
-						triangle.va = v1.textureCoordinates.getV();
-						triangle.vb = v2.textureCoordinates.getV();
-						triangle.vc = v1.textureCoordinates.getV();
-						triangle.vd = v3.textureCoordinates.getV();
-						
-						processScanline(scanline, triangle, v1, v2, v1, v3, texture);
-					} else {
-						triangle.ua = v2.textureCoordinates.getU();
-						triangle.ub = v3.textureCoordinates.getU();
-						triangle.uc = v1.textureCoordinates.getU();
-						triangle.ud = v3.textureCoordinates.getU();
-						
-						triangle.va = v2.textureCoordinates.getV();
-						triangle.vb = v3.textureCoordinates.getV();
-						triangle.vc = v1.textureCoordinates.getV();
-						triangle.vd = v3.textureCoordinates.getV();
-						
-						processScanline(scanline, triangle, v2, v3, v1, v3, texture);
-					}
-				}
-			}
 		}
 	}
 	
@@ -281,41 +185,44 @@ public class Rasterizer {
 	}
 	
 	private void fillBottomFlatTriangle(Vertex v1, Vertex v2, Vertex v3, Texture tex) {
-		  float invslope1 = (v2.position.x - v1.position.x) / (v2.position.y - v1.position.y);
-		  float invslope2 = (v3.position.x - v1.position.x) / (v3.position.y - v1.position.y);
+		  float leftslope = (v2.position.x - v1.position.x) / (v2.position.y - v1.position.y);
+		  float rightslope = (v3.position.x - v1.position.x) / (v3.position.y - v1.position.y);
 
-		  float curx1 = v1.position.x;
-		  float curx2 = v1.position.x;
+		  float startx = v1.position.x;
+		  float endx = v1.position.x;
 
 		  for (int scanlineY = (int)v1.position.y; scanlineY <= v2.position.y; scanlineY++) {
-		    drawLine((int)curx1, scanlineY, (int)curx2, scanlineY);
-		    curx1 += invslope1;
-		    curx2 += invslope2;
+		    
+		    startx += leftslope;
+		    endx += rightslope;
 		  }
 		}
 		
 		private void fillTopFlatTriangle(Vertex v1, Vertex v2, Vertex v3, Texture tex) {
-		  float invslope1 = (v3.position.x - v1.position.x) / (v3.position.y - v1.position.y);
-		  float invslope2 = (v3.position.x - v2.position.x) / (v3.position.y - v2.position.y);
+		  float leftxslope = (v3.position.x - v1.position.x) / (v3.position.y - v1.position.y);
+		  float righxtslope = (v3.position.x - v2.position.x) / (v3.position.y - v2.position.y);
+		  float leftslope = (v2.position.x - v1.position.x) / (v2.position.y - v1.position.y);
+		  float rightslope = (v3.position.x - v1.position.x) / (v3.position.y - v1.position.y);
 
-		  float curx1 = v3.position.x;
-		  float curx2 = v3.position.x;
+		  float startx = v3.position.x;
+		  float endx = v3.position.x;
 
 		  for (int scanlineY = (int)v3.position.y; scanlineY > v1.position.y; scanlineY--) {
-		    curx1 -= invslope1;
-		    curx2 -= invslope2;
-		    drawLine((int)curx1, scanlineY, (int)curx2, scanlineY);
+			
+		    startx -= leftslope;
+		    endx -= rightslope;
+
 		    drawLine(
-		    		curx1, scanlineY,
-		    		
+		    		startx, scanlineY,
+		    		interpolate(v1.textureCoordinates.getU(), v3.textureCoordinates.getU(), gradient)
 		    	);
 		  }
-		}
+	}
 	
-	private void drawLine(int x, int y, float leftu, float leftv, float rightu, float rightv, int length, Texture tex) {
-		float uslope = (rightu - leftu) / (rightv - leftv);
-		float vslope = (rightv - leftv) / (rightu - leftu);
-		float u = leftu, v = leftv;
+	private void drawLine(int x, int y, float startu, float startv, float endu, float endv, int length, Texture tex) {
+		float uslope = (endu - startu) / (endv - startv);
+		float vslope = (endv - startv) / (endu - startu);
+		float u = startu, v = startv;
 		for (int i=0; i<length; i++) {
 			setPixel(
 					(int)x, y, 0,
@@ -324,38 +231,108 @@ public class Rasterizer {
 			u += uslope;
 			v += vslope;
 		}
-	}*/
+	}
+	*/
 	
-	private void processScanline(int line, OrganizedTriangle data, Vertex va, Vertex vb, Vertex vc, Vertex vd, Texture tex) {
+	//TODO: Create fragment class containing all vertcies, UVs, Texture, depth and resulting pixel color
+	public void drawTriangle(Vertex v1, Vertex v2, Vertex v3, Texture texture) {
+		if (isInBounds(v1.position) || isInBounds(v2.position) || isInBounds(v3.position)) {
+			// Sort verts by height, v1 at top
+			if (v1.position.y > v2.position.y) {
+				Vertex temp = v2;
+				v2 = v1;
+				v1 = temp;
+			}
+				
+			if (v2.position.y > v3.position.y) {
+				Vertex temp = v2;
+				v2 = v3;
+				v3 = temp;
+					
+				if (v1.position.y > v2.position.y) {
+					temp = v2;
+					v2 = v1;
+					v1 = temp;
+				}
+			}
+				
+				
+			Vector3 toppos = v1.position;
+			int top = (int)toppos.y;
+			if (top < 0)
+				top = 0;
+			Vector3 middlepos = v2.position;
+			int middle = (int)middlepos.y;
+			Vector3 bottompos = v3.position;
+			int bottom = (int)bottompos.y;
+			if (bottom > height)
+				bottom = height;
+				
+			// Calculate slopes. How many pixels to move across to move down by 1 pixel 
+			float toptomiddlexslope = (middlepos.x - toppos.x) / (middlepos.y - toppos.y);
+			float toptobottomxslope = (bottompos.x - toppos.x) / (bottompos.y - toppos.y);
+			
+			if (toptomiddlexslope > toptobottomxslope) {
+				for (int scanline = top; scanline < bottom; scanline++) {
+					if (scanline < middle) {		
+						processScanline(scanline, v1, v3, v1, v2, texture);
+					} else {
+						processScanline(scanline, v1, v3, v2, v3, texture);
+					}
+				}
+			} else {
+				for (int scanline = top; scanline < bottom; scanline++) {
+					if (scanline < middle) {	
+						processScanline(scanline, v1, v2, v1, v3, texture);
+					} else {	
+						processScanline(scanline, v2, v3, v1, v3, texture);
+					}
+				}
+			}
+		}
+	}
+	
+	private void processScanline(int line, Vertex va, Vertex vb, Vertex vc, Vertex vd, Texture tex) {
 		Vector3 p1 = va.position;
 		Vector3 p2 = vb.position;
 		Vector3 p3 = vc.position;
 		Vector3 p4 = vd.position;
 
-		float gradient1 = (line - p1.y) / (p2.y - p1.y);
-		float gradient2 = (line - p3.y) / (p4.y - p3.y);
+		// Calculate how far down each edge
+		float leftslopepos =  (line - p1.y) / (p2.y - p1.y);
+		leftslopepos = clamp(leftslopepos);
+		float rightslopepos = (line - p3.y) / (p4.y - p3.y);
+		rightslopepos = clamp(rightslopepos);
+		
+		float startx = 	interpolate(p1.x, p2.x, leftslopepos);
+		float endx = 	interpolate(p3.x, p4.x, rightslopepos);
+		
+		float startz = 	interpolate(p1.z, p2.z, leftslopepos);
+		float endz = 	interpolate(p3.z, p4.z, rightslopepos);
 
-		float sx = interpolate(p1.x, p2.x, gradient1);
-		if (sx < 0)
-			sx = 0;
-		float ex = interpolate(p3.x, p4.x, gradient2);
-		if (ex > width)
-			ex = width;
+		float startu = 	interpolate(va.textureCoordinates.getU(), vb.textureCoordinates.getU(), leftslopepos);
+		float endu = 	interpolate(vc.textureCoordinates.getU(), vd.textureCoordinates.getU(), rightslopepos);
 
-		float z1 = interpolate(p1.z, p2.z, gradient1);
-		float z2 = interpolate(p3.z, p4.z, gradient2);
+		float startv = 	interpolate(va.textureCoordinates.getV(), vb.textureCoordinates.getV(), leftslopepos);
+		float endv = 	interpolate(vc.textureCoordinates.getV(), vd.textureCoordinates.getV(), rightslopepos);
 
-		float su = interpolate(data.ua, data.ub, gradient1);
-		float eu = interpolate(data.uc, data.ud, gradient2);
-
-		float sv = interpolate(data.va, data.vb, gradient1);
-		float ev = interpolate(data.vc, data.vd, gradient2);
-
-		float gradientslope = 1f / (ex - sx);
-		for (float x = sx, gradient=0; x < ex; x++, gradient += gradientslope) {
-			float z = interpolate(z1, z2, gradient);
-			float u = interpolate(su, eu, gradient);
-			float v = interpolate(sv, ev, gradient);
+		float stepsize = 1f / (endx - startx); // Calculate percentage to increment from width
+		
+		float gradient = 0;
+		// Clip start and end to screen
+		if (startx < 0) {
+			// Move start UV position to start from the on-screen position
+			gradient += -startx * stepsize;
+			startx = 0;
+		}
+		// End early if goes off screen
+		if (endx > width)
+			endx = width;
+		
+		for (float x = startx; x < endx; x++, gradient += stepsize) {
+			float z = interpolate(startz, endz, gradient);
+			float u = interpolate(startu, endu, gradient);
+			float v = interpolate(startv, endv, gradient);
 
 			// TODO: Calculate world position of pixel
 			// TODO: Calculate distance from camera to pixel
@@ -405,7 +382,7 @@ public class Rasterizer {
 	}
 	
 	private float interpolate(float min, float max, float gradient) {
-		return min + (max - min) * clamp(gradient);
+		return min + (max - min) * gradient;
 	}
 	
 	private float map(float x, float in_min, float in_max, float out_min, float out_max) {
