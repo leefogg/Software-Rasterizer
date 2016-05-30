@@ -16,15 +16,19 @@ public final class ImageTexture extends Texture {
 	public float repeatX = 1, repeatY = 1;
 	private int offsetX, offsetY;
 	
-	// Textures must be a power of 2
-	public ImageTexture(String path) throws IOException {
+	public ImageTexture(int width, int height) throws UnsupportedDimensionException {
+		setDimension(width, height);
+		
+		this.pixels = new Color[width * height];
+		for (int i=0; i<pixels.length; i++)
+			pixels[i] = new Color(0xFFFFFFFF);
+	}
+	public ImageTexture(String path) throws IOException, UnsupportedDimensionException {
 		this(ImageIO.read(new File(path)));
 	}
 	
-	public ImageTexture(BufferedImage tex) {
-		//TODO: Warn if dimension is not power of two
-		width = tex.getWidth();
-		height = tex.getHeight();
+	public ImageTexture(BufferedImage tex) throws UnsupportedDimensionException {
+		setDimension(tex.getWidth(), tex.getHeight());
 		
 		this.pixels = new Color[width * height];
 		int i=0;
@@ -34,6 +38,18 @@ public final class ImageTexture extends Texture {
 				this.pixels[i++] = new Color(argb);
 			}
 		}
+	}
+	
+	public ImageTexture(int width, int height, Color[] buffer) throws UnsupportedDimensionException {
+		setDimension(width, height);
+		
+		pixels = new Color[pixels.length];
+		copy(buffer);
+	}
+	
+	public void copy(Color[] buffer) {
+		for (int i=0; i<Math.min(buffer.length, pixels.length); i++)
+			pixels[i].set(buffer[i]);
 	}
 	
 	public void setXOffset(int offset) {
@@ -49,6 +65,10 @@ public final class ImageTexture extends Texture {
 
 	public int getHeight() {
 		return height;
+	}
+	
+	public int numberOfPixels() {
+		return pixels.length;
 	}
 	
 	public Color map(float tu, float tv) {
@@ -72,5 +92,15 @@ public final class ImageTexture extends Texture {
 		}
 		
 		return image;
+	}
+	
+	private void setDimension(int width, int height) throws UnsupportedDimensionException {
+		if (!isPowerOfTwo(width) || !isPowerOfTwo(height))
+			throw new UnsupportedDimensionException("Image dimension must be a power of two.");
+		this.width = width;
+		this.height = height;
+	}
+	private boolean isPowerOfTwo (int x) {
+		return ((x != 0) && ((x & (~x + 1)) == x));
 	}
 }

@@ -7,5 +7,4 @@ public final class MalformException extends Exception {
 	public MalformException(String message) {
 		super(message);
 	}
-
 }

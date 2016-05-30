@@ -11,15 +11,9 @@ import engine.models.Face;
 import engine.models.Mesh;
 import engine.models.Texture;
 import engine.models.Vertex;
+import engine.models.Materials.ImageTexture;
 
 public class Rasterizer {
-	private class OrganizedTriangle {
-		float
-		ua, ub, uc, ud,
-		va, vb, vc, vd;
-	}
-	private OrganizedTriangle triangle = new OrganizedTriangle();
-	
 	public int width, height;
 	private BufferedImage framebuffer;
 	private Color[] pixels;
@@ -72,12 +66,14 @@ public class Rasterizer {
 			depthBuffer[i] = Integer.MAX_VALUE;		
 	}
 	
-	
-	
 	public void swapBuffers() {
 		int[] outputpixels = ((DataBufferInt)framebuffer.getRaster().getDataBuffer()).getData(); // Pointer to buffer
 		for (int i=0; i<pixels.length; i++)
 			outputpixels[i] = pixels[i].toARGB();		
+	}
+	
+	public void copyBufferToTexture(ImageTexture texture) {
+		texture.copy(pixels);
 	}
 	
 	public BufferedImage getFrameBuffer() {

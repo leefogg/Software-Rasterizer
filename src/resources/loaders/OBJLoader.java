@@ -16,10 +16,11 @@ import engine.models.UVSet;
 import engine.models.Vertex;
 import engine.models.Materials.ColorTexture;
 import engine.models.Materials.ImageTexture;
+import engine.models.Materials.UnsupportedDimensionException;
 import utils.Log;
 
 public class OBJLoader {
-	public static Mesh load(String path) throws IOException, MalformException, IndexOutOfBoundsException {
+	public static Mesh load(String path) throws IOException, MalformException, IndexOutOfBoundsException, UnsupportedDimensionException {
 		Texture texture = ColorTexture.error;
 		ArrayList<Face> facelist = new ArrayList<Face>(100);
 		ArrayList<Vertex> vertlist = new ArrayList<Vertex>(100);
@@ -62,7 +63,7 @@ public class OBJLoader {
 				String[] values = line.substring(3).split(" ");
 				uvlist.add(new UVSet(
 							Float.valueOf(values[0]),
-							Float.valueOf(values[1])
+							1f-Float.valueOf(values[1])
 						));
 					
 			} else if (line.startsWith("f ")) {

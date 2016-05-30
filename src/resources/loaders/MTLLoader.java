@@ -10,10 +10,11 @@ import java.util.ArrayList;
 import engine.math.Color;
 import engine.models.Material;
 import engine.models.Materials.ImageTexture;
+import engine.models.Materials.UnsupportedDimensionException;
 
 public final class MTLLoader {
 
-	public static Material[] load(String path) throws IOException, MalformException {
+	public static Material[] load(String path) throws IOException, MalformException, UnsupportedDimensionException {
 		ArrayList<Material> materials = new ArrayList<Material>(); 
 		Material currentmaterial = null;
 		
