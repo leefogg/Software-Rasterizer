@@ -100,7 +100,7 @@ public final class ImageTexture extends Texture {
 		this.width = width;
 		this.height = height;
 	}
-	private boolean isPowerOfTwo (int x) {
-		return ((x != 0) && ((x & (~x + 1)) == x));
+	private boolean isPowerOfTwo(int x) {
+		return (x & (~x + 1)) == x;
 	}
 }

@@ -14,51 +14,104 @@ import engine.models.Vertex;
 import engine.models.Materials.ImageTexture;
 
 public class Rasterizer {
-	public int width, height;
+	// Global enums like OpenGL. Import statically for convenience
+	public static final int
+	GL_BUFFER_BIT = 1,
+	GL_DEPTH_BIT = 2,
+	
+	GL_CULL_FACE = 1,
+	GL_FRONT = 1,
+	GL_BACK = 2,
+	GL_FRONT_AND_BACK = 3,
+	
+	GL_FUNC_SET = 1,
+	GL_FUNC_ADD = 2,
+	GL_FUNC_SUBTRACT = 3,
+	GL_FUNC_REVERSE_SUBTRACT = 4,
+	GL_MIN = 5,
+	GL_MAX = 6;
+	
+	// Data required to render an image
+	//TODO: Replace with texture
+	private int width, height;
 	private BufferedImage framebuffer;
 	private Color[] pixels;
 	private float[] depthBuffer;
+	private Color clearColor = Color.alpha;
 	
-	public ArrayList<Mesh> meshes = new ArrayList<Mesh>();
-	public Matrix 
+	// Data required for rasterization process
+	private float 
+	znear,
+	zfar;
+	private Matrix 
 	projectionMatrix,
 	screenmatrix;
 	
-	public Rasterizer() {
-		this(320, 240);
-	}
+	// Settings
+	private boolean cullfaces = false;
+	private int cullFaceMode = GL_BACK;
+	private int blendMode = GL_FUNC_SET; 
 	
-	public Rasterizer(int width, int height) {
-		this(new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB));
-	}
-	public Rasterizer(BufferedImage buffer) {
-		framebuffer = buffer;
+	public Rasterizer(float fov, int width, int height, float znear, float zfar) {
+		this.width = width;
+		this.height = height;
+		this.znear = znear;
+		this.zfar = zfar;
 		
-		this.width = framebuffer.getWidth();
-		this.height = framebuffer.getHeight();
+		framebuffer = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 		
 		pixels = new Color[width * height];
 		depthBuffer = new float[pixels.length];
-		for (int i=0; i<pixels.length; i++)
-			pixels[i] = new Color(0x00000000); // TODO: Set void color
 			
-		projectionMatrix = Matrix.PerspectiveFovLH(0.78f, (float)width / (float)height, 0.01f, 1f);
+		projectionMatrix = Matrix.PerspectiveFovLH(fov, (float)width / (float)height, znear, zfar);
 		screenmatrix = Matrix.scaling(-width, -height, 1).multiply(Matrix.translation(width / 2, height / 2, 1));
 		
-		
+		for (int i=0; i<pixels.length; i++)
+			pixels[i] = new Color(clearColor);
 		clearDepthBuffer();
 	}
 	
-	public void addMesh(Mesh m) {
-		if (meshes.indexOf(m) == -1)
-			meshes.add(m);
+	// Setters
+	public void setClearColor(int argb) {
+		clearColor.set(argb);
+	}
+	public void setClearColor(Color color) {
+		clearColor.set(color);
 	}
 	
-	//TODO: Make all static like OpenGL
+	// OpenGL methods
+	public void clear(int mask) {
+		if ((mask & GL_BUFFER_BIT) == GL_BUFFER_BIT)
+			clearFrameBuffer();
+		if ((mask & GL_DEPTH_BIT) == GL_DEPTH_BIT)
+			clearDepthBuffer();
+	}
+	public void enable(int settings) {
+		if ((settings & GL_CULL_FACE) == GL_CULL_FACE)
+			cullfaces = true;
+	}
+	public void disable(int settings) {
+		if ((settings & GL_CULL_FACE) == GL_CULL_FACE)
+			cullfaces = false;
+	}
+	public void cullFace(int settings) {
+		if (settings == GL_BACK || settings == GL_FRONT || settings == GL_FRONT_AND_BACK) {
+			cullFaceMode = settings;
+		}
+	}
+	private void glBlendEquation(int settings) {
+		if (settings == GL_FUNC_SET ||
+			settings == GL_FUNC_ADD ||
+			settings == GL_FUNC_SUBTRACT ||
+			settings == GL_MAX ||
+			settings == GL_MIN) {
+			blendMode  = settings;
+		}
+	}
 	
 	public void clearFrameBuffer() {		
 		for (Color c : pixels)
-			c.set(0x00000000); // TODO: Set void color
+			c.set(clearColor); // TODO: Set void color
 	}
 	
 	public void clearDepthBuffer() {
@@ -93,28 +146,34 @@ public class Rasterizer {
 		return depthbuffer;
 	}
 	
-	public void render(Camera cam) {
-		for (Mesh mesh : meshes)
-			render(mesh, cam);
+	//TODO: Render to texture
+	public void render(Mesh mesh, Camera cam) {
+		if (cullfaces && cullFaceMode == GL_FRONT_AND_BACK) return;
 		
-		//System.out.println("Max:" + maxdepth + ", min:" + mindepth);
-		// TODO: Get real distance from camera
-	}
-	
-	private void render(Mesh mesh, Camera cam) {		
 		Matrix worldview = Matrix.multiply(mesh.worldmatrix, cam.viewMatrix);
 		Matrix transformmatrix = Matrix.multiply(worldview, projectionMatrix);
 		
-		// Scale to screen size and move to middle
+		// Scale to glados size and move to middle
 		transformmatrix.multiply(screenmatrix);
 		
 		mesh.projectVertcies(transformmatrix);
 		
 		Vector3 transformednormal = new Vector3(0,0,0);
 		for (Face face : mesh.faces) {
-			Matrix.transformNormal(face.normal, transformmatrix, transformednormal);
-			if (transformednormal.z > 0)
-				continue;
+			// Cull front and/or back face as per settings if GL_CULL_FACE is enabled
+			if (cullfaces) {
+				Matrix.transformNormal(face.normal, transformmatrix, transformednormal);
+				switch (cullFaceMode) {
+					case GL_BACK: 
+						if (transformednormal.z > 0)
+							continue;
+						break;
+					case GL_FRONT:
+						if (transformednormal.z < 0)
+							continue;
+						break;
+				}
+			}
 			
 			drawTriangle(
 					mesh.transformedvertcies[face.vertex1],
@@ -255,12 +314,13 @@ public class Rasterizer {
 				
 			Vector3 toppos = v1.position;
 			int top = (int)toppos.y;
-			if (top < 0)
-				top = 0;
 			Vector3 middlepos = v2.position;
 			int middle = (int)middlepos.y;
 			Vector3 bottompos = v3.position;
 			int bottom = (int)bottompos.y;
+			
+			if (top < 0)
+				top = 0;
 			if (bottom > height)
 				bottom = height;
 				
@@ -295,9 +355,10 @@ public class Rasterizer {
 		Vector3 p4 = vd.position;
 
 		// Calculate how far down each edge
+		//TODO: Move to drawTriangle, precalc slopes, remove all interpolate
 		float leftslopepos =  (line - p1.y) / (p2.y - p1.y);
-		leftslopepos = clamp(leftslopepos);
 		float rightslopepos = (line - p3.y) / (p4.y - p3.y);
+		leftslopepos = clamp(leftslopepos);
 		rightslopepos = clamp(rightslopepos);
 		
 		float startx = 	interpolate(p1.x, p2.x, leftslopepos);
@@ -314,21 +375,21 @@ public class Rasterizer {
 
 		float stepsize = 1f / (endx - startx); // Calculate percentage to increment from width
 		
-		float gradient = 0;
+		float lineprogress = 0;
 		// Clip start and end to screen
 		if (startx < 0) {
 			// Move start UV position to start from the on-screen position
-			gradient += -startx * stepsize;
+			lineprogress += -startx * stepsize;
 			startx = 0;
 		}
 		// End early if goes off screen
 		if (endx > width)
 			endx = width;
 		
-		for (float x = startx; x < endx; x++, gradient += stepsize) {
-			float z = interpolate(startz, endz, gradient);
-			float u = interpolate(startu, endu, gradient);
-			float v = interpolate(startv, endv, gradient);
+		for (float x = startx; x < endx; x++, lineprogress += stepsize) {
+			float z = interpolate(startz, endz, lineprogress);
+			float u = interpolate(startu, endu, lineprogress);
+			float v = interpolate(startv, endv, lineprogress);
 
 			// TODO: Calculate world position of pixel
 			// TODO: Calculate distance from camera to pixel
@@ -352,9 +413,30 @@ public class Rasterizer {
 		if (z > maxdepth) maxdepth = z;
 		if (z < mindepth) mindepth = z;
 		
-		depthBuffer[pixelindex] = z;
 		// TOOD: Fix depth buffer values
-		pixels[pixelindex].set(color);
+		depthBuffer[pixelindex] = z;
+		
+
+		switch(blendMode) {
+			case GL_FUNC_SET:
+				pixels[pixelindex].set(color);
+				break;
+			case GL_FUNC_ADD:
+				pixels[pixelindex].add(color);
+				break;
+			case GL_FUNC_SUBTRACT:
+				pixels[pixelindex].subtract(color);
+				break;
+			case GL_FUNC_REVERSE_SUBTRACT:
+				pixels[pixelindex].reverseSubtract(color);
+				break;
+			case GL_MIN:
+				pixels[pixelindex].min(color);
+				break;
+			case GL_MAX:
+				pixels[pixelindex].max(color);
+				break;
+		}
 	}
 	
 	private boolean isInBounds(Vector3 point) {
@@ -387,6 +469,5 @@ public class Rasterizer {
 	
 	public void dispose() {
 		framebuffer.flush();
-		meshes.clear();
 	}
 }

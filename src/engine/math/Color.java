@@ -9,13 +9,20 @@ public class Color {
 	white = new Color(255,255,255),
 	alpha = new Color(0,0,0,0);
 	
-	//TODO: subtractive and additive modes
-	public float r, g, b, a; // TODO: Convert to int
+	public float r, g, b, a;
 	
 	public Color(){}
 	
 	public Color(java.awt.Color color) {
 		set(color.getRGB());
+	}
+	public Color(Color color) {
+		set(
+				color.a,
+				color.r,
+				color.g,
+				color.b
+			);
 	}
 
 	public Color(int argb) {
@@ -110,6 +117,13 @@ public class Color {
 		return this;
 	}
 	
+	public Color reverseSubtract(Color c) {
+		r = c.r - r;
+		g = c.g - g;
+		b = c.b - b;
+		a = c.a - a;
+		return this;
+	}
 	public Color subtract(Color c) {
 		r -= c.r;
 		g -= c.g;
@@ -134,6 +148,18 @@ public class Color {
 		return this;
 	}
 	
+	public void max(Color color) {
+		a = Math.max(a, color.a);
+		r = Math.max(r, color.r);
+		g = Math.max(g, color.g);
+		b = Math.max(b, color.b);
+	}
+	public void min(Color color) {
+		a = Math.min(a, color.a);
+		r = Math.min(r, color.r);
+		g = Math.min(g, color.g);
+		b = Math.min(b, color.b);
+	}
 	
 	protected boolean isValidColor(float a, float r, float g, float b) {
 		if (a > 1f) return false;
@@ -169,7 +195,6 @@ public class Color {
 		a /= max;
 	}
 	
-	
 	public static boolean hasAlpha(int argb) {
 		return ((argb >> 24) & 0xFF) < 255;
 	}
@@ -204,5 +229,4 @@ public class Color {
 	private float invertChannel(float a) {
 		return Math.abs(a - 1);
 	}
-
 }

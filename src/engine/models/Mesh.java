@@ -35,11 +35,11 @@ public class Mesh {
 		this.faces = faces;
 		this.texture = tex;
 
-		worldmatrix = Matrix.RotationYawPitchRoll(rotation.y, rotation.x, rotation.z).multiply(Matrix.translation(position.x, position.y, position.z));
+		updateWorldMatrix();
 	}
 	
 	public void projectVertcies(Matrix transformmatrix) {
-		for (int i=0; i<vertcies.length; i++)
+		for (int i=0; i<vertcies.length; i++) // TODO: Make projectPositions method that takes all verts
 			Matrix.transformCoordinates(vertcies[i].position, transformmatrix, transformedvertcies[i].position);
 	}
 	
@@ -52,17 +52,25 @@ public class Mesh {
 	}
 	
 	//TODO: Add methods to transform raw vert's positions
-	
+	public void setPosition(float x, float y, float z) {
+		position.x = x;
+		position.y = y;
+		position.z = z;
+		updateWorldMatrix();
+	}
 	public void setPosition(Vector3 pos) {
 		position = pos;
-		worldmatrix = Matrix.RotationYawPitchRoll(rotation.y, rotation.x, rotation.z)
-				.multiply(Matrix.translation(position.x, position.y, position.z));
+		updateWorldMatrix();
 	}
 	
 	public void setRotation(Vector3 rot) {
 		rotation = rot;
+		updateWorldMatrix();
+	}
+	
+	private void updateWorldMatrix() {
 		worldmatrix = Matrix.RotationYawPitchRoll(rotation.y, rotation.x, rotation.z)
-				.multiply(Matrix.translation(position.x, position.y, position.z));
+				.multiply(Matrix.translation(position.x, position.y, position.z));	
 	}
 	
 	public void debugUVs(String imagepath) throws IOException {

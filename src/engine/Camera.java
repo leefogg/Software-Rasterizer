@@ -20,13 +20,23 @@ public class Camera {
 		return position.Clone();
 	}
 	
+	public void setPosition(float x, float y, float z) {
+		position.x = x;
+		position.y = y;
+		position.z = z;
+		updateViewMatrix();
+	}
 	public void setPosition(Vector3 pos) {
 		position = pos;
-		Matrix.lookAtLH(position, target, Vector3.up, viewMatrix);
+		updateViewMatrix();
 	}
 	
 	public void setTarget(Vector3 pos) {
 		target = pos;
+		updateViewMatrix();
+	}
+	
+	private void updateViewMatrix() {
 		Matrix.lookAtLH(position, target, Vector3.up, viewMatrix);
 	}
 	
