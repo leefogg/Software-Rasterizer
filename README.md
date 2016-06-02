@@ -18,10 +18,10 @@ I will cover loading simple 3D model formats such as Wavefront OBJ, representing
 + Texture offset
 + Camera textures
 + Depth buffer
-##Limitations
+## Limitations
 + Texture dimensions must be power of two
 + Model faces must have only three verticies
-##Future features
+## Future features
 + Light support
 + Vertex colours
 + MTL loading
