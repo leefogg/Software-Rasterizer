@@ -99,7 +99,7 @@ public class Rasterizer {
 			cullFaceMode = settings;
 		}
 	}
-	private void glBlendEquation(int settings) {
+	public void blendEquation(int settings) {
 		if (settings == GL_FUNC_SET ||
 			settings == GL_FUNC_ADD ||
 			settings == GL_FUNC_SUBTRACT ||
@@ -313,12 +313,17 @@ public class Rasterizer {
 				
 				
 			Vector3 toppos = v1.position;
-			int top = (int)toppos.y;
 			Vector3 middlepos = v2.position;
-			int middle = (int)middlepos.y;
 			Vector3 bottompos = v3.position;
+			int top =    (int)toppos.y;
+			int middle = (int)middlepos.y;
 			int bottom = (int)bottompos.y;
 			
+			//Check if triangle is completely off screen
+			if (bottom < 0 || top > height)
+				return;
+			
+			// Crop start and end scanline of triangle to screen
 			if (top < 0)
 				top = 0;
 			if (bottom > height)
@@ -328,6 +333,7 @@ public class Rasterizer {
 			float toptomiddlexslope = (middlepos.x - toppos.x) / (middlepos.y - toppos.y);
 			float toptobottomxslope = (bottompos.x - toppos.x) / (bottompos.y - toppos.y);
 			
+			// What side is the middle vertex?
 			if (toptomiddlexslope > toptobottomxslope) {
 				for (int scanline = top; scanline < bottom; scanline++) {
 					if (scanline < middle) {		
@@ -358,11 +364,11 @@ public class Rasterizer {
 		//TODO: Move to drawTriangle, precalc slopes, remove all interpolate
 		float leftslopepos =  (line - p1.y) / (p2.y - p1.y);
 		float rightslopepos = (line - p3.y) / (p4.y - p3.y);
-		leftslopepos = clamp(leftslopepos);
+		leftslopepos =  clamp(leftslopepos);
 		rightslopepos = clamp(rightslopepos);
 		
-		float startx = 	interpolate(p1.x, p2.x, leftslopepos);
-		float endx = 	interpolate(p3.x, p4.x, rightslopepos);
+		int startx = 	(int)interpolate(p1.x, p2.x, leftslopepos);
+		int endx = 		(int)interpolate(p3.x, p4.x, rightslopepos);
 		
 		float startz = 	interpolate(p1.z, p2.z, leftslopepos);
 		float endz = 	interpolate(p3.z, p4.z, rightslopepos);
@@ -373,30 +379,38 @@ public class Rasterizer {
 		float startv = 	interpolate(va.textureCoordinates.getV(), vb.textureCoordinates.getV(), leftslopepos);
 		float endv = 	interpolate(vc.textureCoordinates.getV(), vd.textureCoordinates.getV(), rightslopepos);
 
-		float stepsize = 1f / (endx - startx); // Calculate percentage to increment from width
 		
-		float lineprogress = 0;
+		// How much difference in attributes per pixel
+		float scanlinelength = 1f / (endx - startx); // Simple inverse. multiplying is faster than dividing
+		float uslope = (endu - startu) * scanlinelength;
+		float vslope = (endv - startv) * scanlinelength;
+		float zslope = (endz - startz) * scanlinelength;
+		
+		float u = startu;
+		float v = startv;
+		float z = startz;
 		// Clip start and end to screen
 		if (startx < 0) {
-			// Move start UV position to start from the on-screen position
-			lineprogress += -startx * stepsize;
+			int difference = -startx;
 			startx = 0;
+			
+			// Move start UV and depth position to where they would be now startx has moved
+			u += difference * uslope;
+			v += difference * vslope;
+			z += difference * zslope;
 		}
 		// End early if goes off screen
 		if (endx > width)
 			endx = width;
 		
-		for (float x = startx; x < endx; x++, lineprogress += stepsize) {
-			float z = interpolate(startz, endz, lineprogress);
-			float u = interpolate(startu, endu, lineprogress);
-			float v = interpolate(startv, endv, lineprogress);
+		for (int x = startx; x < endx; x++) {
+			z += zslope;
+			u += uslope;
+			v += vslope;
 
 			// TODO: Calculate world position of pixel
 			// TODO: Calculate distance from camera to pixel
-			setPixel(
-					(int)x, line, z,
-					tex.map(u, v)
-					);
+			setPixel(x, line, z, tex.map(u, v));
 		}
 	}
 	

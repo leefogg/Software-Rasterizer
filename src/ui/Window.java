@@ -7,7 +7,7 @@ import javax.swing.JFrame;
 
 
 public class Window {
-	public static final int width = 640, height = 480;
+	public static final int width = 512, height = 512;
 	
 	public static void main(String arg[]) {
 		new Window("Software Rasterizer", width, height, new Viewport());

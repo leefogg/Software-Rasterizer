@@ -11,14 +11,15 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 
 import engine.Camera;
-import engine.ImageTexture;
-import engine.Mesh;
-import engine.Renderer;
+import engine.Rasterizer;
 import engine.math.Vector3;
+import engine.models.Mesh;
+import engine.models.Texture;
+import engine.models.Materials.ImageTexture;
 import resources.loaders.OBJLoader;
 import utils.FrameCounter;
 import utils.Log;
-
+import static engine.Rasterizer.*;
 
 public class Viewport extends Canvas implements MouseWheelListener {
 	private static final long serialVersionUID = -869334646261735255L;
@@ -27,9 +28,10 @@ public class Viewport extends Canvas implements MouseWheelListener {
 
 	private FrameCounter fc = new FrameCounter();
 
-	private Renderer renderer;
-	private Camera camera = new Camera(new Vector3(0,3,5), new Vector3(0,1,0));
-
+	private Rasterizer renderer;
+	private Camera camera = new Camera(new Vector3(0,2,5), new Vector3(0,1,0));
+	
+	Mesh glados, floor;
 
 	public Viewport() {
 		setIgnoreRepaint(true);
@@ -49,20 +51,20 @@ public class Viewport extends Canvas implements MouseWheelListener {
 			e.printStackTrace();
 		}
 
-		renderer = new Renderer();
+		renderer = new Rasterizer(0.9f, 320, 240, 0.01f, 1f);
+		renderer.setClearColor(0xFF000000);
+		renderer.enable(GL_CULL_FACE);
+		renderer.cullFace(GL_BACK);
+		renderer.blendEquation(GL_FUNC_SET);
 		try {
 			String localdir =  System.getProperty("user.dir").replaceAll("\\\\", "/");
-			/*
-			*/
-			Mesh floor = OBJLoader.load(localdir + "/res/floor.obj");
-			ImageTexture floortex = (ImageTexture)floor.texture;
-			floortex.repeatX = 10;
-			floortex.repeatY = 10;
-			renderer.addMesh(floor);
-			Mesh cube = OBJLoader.load(localdir + "/res/glados.obj");
-			cube.setPosition(new Vector3(0,1,0));
-			renderer.addMesh(cube);
+			floor = OBJLoader.load(localdir + "/res/floor.obj");
+			ImageTexture screentex = (ImageTexture)floor.texture;
+			screentex.repeatX = 10;
+			screentex.repeatY = 10;
 			
+			glados = OBJLoader.load(localdir + "/res/glados.obj");
+			glados.setPosition(0,1,0);
 		} catch (Exception e) {
 			System.out.println("An error accured loading resources.");
 			e.printStackTrace();
@@ -72,15 +74,16 @@ public class Viewport extends Canvas implements MouseWheelListener {
 		Graphics2D graphics = (Graphics2D)buffer.getDrawGraphics();
 		while(true) {
 			tick();
-			graphics.clearRect(0, 0, getWidth(), getHeight());
-			renderer.clearBuffer();
-			renderer.clearDepthBuffer();
-			renderer.render(camera);
+			
+			renderer.clear(GL_BUFFER_BIT | GL_DEPTH_BIT);
+			renderer.render(floor, camera);
+			renderer.render(glados, camera);
 			renderer.swapBuffers();
-			graphics.drawImage(renderer.output, 0, 0, getWidth(), getHeight(), this);
+			//graphics.clearRect(0, 0, getWidth(), getHeight());
+			graphics.drawImage(renderer.getFrameBuffer(), 0, 0, this);
 
 			graphics.setColor(Color.green);
-			graphics.drawString(String.valueOf(fc.fps) + "FPS", 5, 15);
+			graphics.drawString("FPS: " + String.valueOf(fc.fps), 5, 15);
 
 			if(!buffer.contentsLost())
 				buffer.show();
@@ -90,13 +93,11 @@ public class Viewport extends Canvas implements MouseWheelListener {
 	}
 
 	float sincos = 0;
-	float stepsize = (float)Math.PI*2/360f;
+	float stepsize = (float)Math.PI*2/1000f;
 	float distance = 5;
 	private void tick() {
 		/*
-		Mesh m = renderer.meshes.get(0);
-		m.setRotation(m.getRotation().add(0f, -0.01f, 0f));
-		*/
+		 */
 		Vector3 pos = camera.getPosition();
 		pos.x = (float)Math.cos(sincos) * distance;
 		pos.z = (float)Math.sin(sincos) * distance;
