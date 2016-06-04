@@ -1,6 +1,9 @@
 package engine.models.Materials;
 
+import static engine.math.CommonMath.*;
+
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 import java.io.File;
 import java.io.IOException;
 
@@ -12,7 +15,10 @@ import engine.models.Texture;
 public final class ImageTexture extends Texture {
 
 	private Color[] pixels;
-	private int width, height;
+	private int 
+	width,
+	widthpower, // the power of two of width
+	height;
 	public float repeatX = 1, repeatY = 1;
 	private int offsetX, offsetY;
 	
@@ -78,7 +84,7 @@ public final class ImageTexture extends Texture {
 		int v = (int)(tv * height * repeatY) + offsetY;
 		u &= width-1;
 		v &= height-1;
-		Color pixel = pixels[v*width + u];
+		Color pixel = pixels[(v << widthpower) + u]; // Multiplying by a power of two is the same as bit shifting, bit shift is faster 
 		return pixel;
 	}
 
@@ -94,13 +100,27 @@ public final class ImageTexture extends Texture {
 		return image;
 	}
 	
+	public int[] toARGBArray() {
+		int[] argblist = new int[pixels.length];
+		int i=0;
+		for (Color c : pixels)
+			argblist[i++] = c.toARGB();
+		
+		return argblist;
+	}
+	
+	public DataBufferInt toDataBuffer() {
+		int[] pixels = toARGBArray();
+		return new DataBufferInt(pixels, pixels.length);
+	}
+	
 	private void setDimension(int width, int height) throws UnsupportedDimensionException {
 		if (!isPowerOfTwo(width) || !isPowerOfTwo(height))
 			throw new UnsupportedDimensionException("Image dimension must be a power of two.");
+		
 		this.width = width;
 		this.height = height;
+		this.widthpower = powerOfTwo(width);
 	}
-	private boolean isPowerOfTwo(int x) {
-		return (x & (~x + 1)) == x;
-	}
+	
 }

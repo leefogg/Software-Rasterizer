@@ -2,7 +2,6 @@ package engine;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
-import java.util.ArrayList;
 
 import engine.math.Color;
 import engine.math.Matrix;
@@ -12,6 +11,8 @@ import engine.models.Mesh;
 import engine.models.Texture;
 import engine.models.Vertex;
 import engine.models.Materials.ImageTexture;
+
+import static engine.math.CommonMath.*;
 
 public class Rasterizer {
 	// Global enums like OpenGL. Import statically for convenience
@@ -291,7 +292,7 @@ public class Rasterizer {
 	
 	//TODO: Create fragment class containing all vertcies, UVs, Texture, depth and resulting pixel color
 	public void drawTriangle(Vertex v1, Vertex v2, Vertex v3, Texture texture) {
-		if (isInBounds(v1.position) || isInBounds(v2.position) || isInBounds(v3.position)) {
+		if (isInBounds(v1.position) || isInBounds(v2.position) || isInBounds(v3.position)) { // TODO: Review
 			// Sort verts by height, v1 at top
 			if (v1.position.y > v2.position.y) {
 				Vertex temp = v2;
@@ -457,28 +458,7 @@ public class Rasterizer {
 		return isInBounds(point.x, point.y);
 	}
 	private boolean isInBounds(float x, float y) {
-		if (x < 0) 		return false;
-		if (y < 0) 		return false;
-		if (x >= width) return false;
-		if (y >= height)return false;
-		return true;
-	}
-
-	private float clamp(float value, float min, float max) {
-		if (value > max) return max;
-		if (value < min) return min;
-		return value;
-	}
-	private float clamp(float value) {
-		return clamp(value, 0, 1);
-	}
-	
-	private float interpolate(float min, float max, float gradient) {
-		return min + (max - min) * gradient;
-	}
-	
-	private float map(float x, float in_min, float in_max, float out_min, float out_max) {
-	  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+		return isInRange(x, 0, width) && isInRange(y, 0, height);
 	}
 	
 	public void dispose() {

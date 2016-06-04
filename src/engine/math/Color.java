@@ -1,5 +1,7 @@
 package engine.math;
 
+import static engine.math.CommonMath.*;
+
 public class Color {
 	public static final Color
 	red = new Color(255,0,0),
@@ -174,10 +176,10 @@ public class Color {
 	}
 	
 	public void ensureScale() {
-		a = Math.min(1, Math.max(0, a));
-		r = Math.min(1, Math.max(0, r));
-		g = Math.min(1, Math.max(0, g));
-		b = Math.min(1, Math.max(0, b));
+		a = clamp(a);
+		r = clamp(r);
+		g = clamp(g);
+		b = clamp(b);
 	}
 	
 	public void normalize() {
@@ -198,7 +200,6 @@ public class Color {
 	public static boolean hasAlpha(int argb) {
 		return ((argb >> 24) & 0xFF) < 255;
 	}
-	
 	
 	public Color clone() {
 		return new Color(a,r,g,b);
