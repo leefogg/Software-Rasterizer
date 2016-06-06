@@ -98,12 +98,11 @@ public class Viewport extends Canvas implements MouseWheelListener {
 	private void tick() {
 		/*
 		 */
-		//TODO: commented this out as a test for GitHub push
-//		Vector3 pos = camera.getPosition();
-//		pos.x = (float)Math.cos(sincos) * distance;
-//		pos.z = (float)Math.sin(sincos) * distance;
-//		camera.setPosition(pos);
-//		sincos += stepsize;
+		Vector3 pos = camera.getPosition();
+		pos.x = (float)Math.cos(sincos*10) * distance;
+		pos.z = (float)Math.sin(sincos*10) * distance;
+		camera.setPosition(pos);
+		sincos += stepsize;
 	}
 
 	@Override
