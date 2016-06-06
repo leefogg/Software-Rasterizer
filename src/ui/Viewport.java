@@ -51,7 +51,7 @@ public class Viewport extends Canvas implements MouseWheelListener {
 			e.printStackTrace();
 		}
 
-		renderer = new Rasterizer(0.9f, 320, 240, 0.01f, 1f);
+		renderer = new Rasterizer(0.9f, Window.width, Window.height, 0.01f, 1f);
 		renderer.setClearColor(0xFF000000);
 		renderer.enable(GL_CULL_FACE);
 		renderer.cullFace(GL_BACK);
@@ -99,8 +99,8 @@ public class Viewport extends Canvas implements MouseWheelListener {
 		/*
 		 */
 		Vector3 pos = camera.getPosition();
-		pos.x = (float)Math.cos(sincos) * distance;
-		pos.z = (float)Math.sin(sincos) * distance;
+		pos.x = (float)Math.cos(sincos*10) * distance;
+		pos.z = (float)Math.sin(sincos*10) * distance;
 		camera.setPosition(pos);
 		sincos += stepsize;
 	}

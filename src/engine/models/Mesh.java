@@ -22,7 +22,7 @@ public class Mesh {
 	rotation = new Vector3(0.00001f, 0.00001f, 0.00001f);
 	public Texture texture = Texture.error;
 	
-	public Matrix worldmatrix;
+	public Matrix worldmatrix = new Matrix();
 	
 	public Mesh(Vertex[] verticies, Face[] faces, Texture tex) {
 		this.vertcies = verticies;
@@ -35,7 +35,7 @@ public class Mesh {
 		this.faces = faces;
 		this.texture = tex;
 
-		updateWorldMatrix();
+//		updateWorldMatrix();
 	}
 	
 	public void projectVertcies(Matrix transformmatrix) {

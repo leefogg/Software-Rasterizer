@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Random;
 
 import engine.math.Color;
 import engine.math.Vector3;
@@ -27,13 +28,18 @@ public class OBJLoader {
 		ArrayList<UVSet> uvlist = new ArrayList<UVSet>(100);
 		
 		BufferedReader objfilereader = new BufferedReader(new InputStreamReader(new DataInputStream(new FileInputStream(path))));
+		boolean skip = false;
+		int count = 0;
 		while(!objfilereader.ready()){}
 		
 		String line;
 		int linenumber=0;
 		while ((line = objfilereader.readLine()) != null)  {
+			if (count > 2) {
+				skip = true;
+				count = 0;
+			}
 			linenumber++;
-			
 			if (line.startsWith("v ")) {
 				String[] values = line.substring(2).split(" ");
 				Vertex newvertex = null;
@@ -43,6 +49,10 @@ public class OBJLoader {
 								Float.valueOf(values[1]),
 								Float.valueOf(values[2])
 							));
+//						if (skip) {
+							newvertex.position.z = (new Random()).nextFloat()*1;
+							skip = false;
+//						}
 					}
 					if (values.length >= 6) {
 						newvertex.color = new Color(
@@ -63,7 +73,7 @@ public class OBJLoader {
 				String[] values = line.substring(3).split(" ");
 				uvlist.add(new UVSet(
 							Float.valueOf(values[0]),
-							1f-Float.valueOf(values[1])
+							Float.valueOf(values[1])
 						));
 					
 			} else if (line.startsWith("f ")) {
@@ -134,6 +144,7 @@ public class OBJLoader {
 				String folder = path.substring(0, path.lastIndexOf("/") + 1);
 				texture = new ImageTexture(folder + line.substring(4));
 			}
+			count++;
 		}
 		
 		objfilereader.close();
