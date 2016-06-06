@@ -63,7 +63,7 @@ public class OBJLoader {
 				String[] values = line.substring(3).split(" ");
 				uvlist.add(new UVSet(
 							Float.valueOf(values[0]),
-							1f-Float.valueOf(values[1])
+							Float.valueOf(values[1])
 						));
 					
 			} else if (line.startsWith("f ")) {
