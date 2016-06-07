@@ -7,13 +7,18 @@ public final class CommonMath {
 		return true;
 	}
 	
+	public static float clamp(float value) {
+		return clamp(value, 0, 1);
+	}
 	public static float clamp(float value, float min, float max) {
 		if (value > max) return max;
 		if (value < min) return min;
 		return value;
 	}
-	public static float clamp(float value) {
-		return clamp(value, 0, 1);
+	public static int clamp(int value, int min, int max) {
+		if (value > max) return max;
+		if (value < min) return min;
+		return value;
 	}
 	
 	public static float interpolate(float min, float max, float gradient) {

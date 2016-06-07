@@ -7,6 +7,7 @@ public final class UVSet {
 	end = new UVSet(1,1);
 	
 	float u, v;
+	
 	public UVSet(float u, float v) {
 		set(u,v);
 	}

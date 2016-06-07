@@ -77,14 +77,14 @@ public final class ImageTexture extends Texture {
 		return pixels.length;
 	}
 	
-	public Color map(float tu, float tv) {
-		tu = Math.abs(tu);
-		tv = Math.abs(tv);
-		int u = (int)(tu * width * repeatX) + offsetX;
-		int v = (int)(tv * height * repeatY) + offsetY;
-		u &= width-1;
-		v &= height-1;
-		Color pixel = pixels[(v << widthpower) + u]; // Multiplying by a power of two is the same as bit shifting, bit shift is faster 
+	public Color map(float u, float v) {
+		u = Math.abs(u);
+		v = Math.abs(v);
+		int x = (int)(u * width * repeatX) + offsetX;
+		int y = (int)(v * height * repeatY) + offsetY;
+		x &= width-1;
+		y &= height-1;
+		Color pixel = pixels[(y << widthpower) + x]; // Multiplying by a power of two is the same as bit shifting, bit shift is faster 
 		return pixel;
 	}
 

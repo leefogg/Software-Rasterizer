@@ -47,6 +47,7 @@ public class Rasterizer {
 	private Matrix 
 	projectionMatrix,
 	screenmatrix;
+	private Vector3 transformednormal = new Vector3(0,0,0);
 	
 	// Settings
 	private boolean cullfaces = false;
@@ -154,12 +155,11 @@ public class Rasterizer {
 		Matrix worldview = Matrix.multiply(mesh.worldmatrix, cam.viewMatrix);
 		Matrix transformmatrix = Matrix.multiply(worldview, projectionMatrix);
 		
-		// Scale to glados size and move to middle
+		// Scale to screen size and move to middle
 		transformmatrix.multiply(screenmatrix);
 		
 		mesh.projectVertcies(transformmatrix);
 		
-		Vector3 transformednormal = new Vector3(0,0,0);
 		for (Face face : mesh.faces) {
 			// Cull front and/or back face as per settings if GL_CULL_FACE is enabled
 			if (cullfaces) {
@@ -185,207 +185,187 @@ public class Rasterizer {
 		}
 	}
 	
-	/* Not yet implemented
-	public void drawTriangle(Vertex v1, Vertex v2, Vertex v3, Texture tex) {
-		// First sort the three vertices by y-coordinate ascending so v1 is the topmost vertex
-		if (v1.position.y > v2.position.y) {
-			Vertex temp = v2;
-			v2 = v1;
-			v1 = temp;
-		}
-		
-		if (v2.position.y > v3.position.y) {
-			Vertex temp = v2;
-			v2 = v3;
-			v3 = temp;
-			
-			if (v1.position.y > v2.position.y) {
-				temp = v2;
-				v2 = v1;
-				v1 = temp;
-			}
-		}
-		
-		
-		Vector3 p1 = v1.position;
-		Vector3 p2 = v2.position;
-		Vector3 p3 = v3.position;
-	
-	  //here we know that v1.y <= v2.y <= v3.y
-	  //check for trivial case of bottom-flat triangle
-	  if (p2.y == p3.y) {
-		  fillBottomFlatTriangle(v1, v2, v3, tex);
-	  } else if (p1.y == p2.y) { //check for trivial case of top-flat triangle
-		  fillTopFlatTriangle(v1, v2, v3, tex);
-	  } else { //general case - split the triangle in a topflat and bottom-flat one 
-		  float posslopex = (p3.x - p1.x) / (p3.y - p1.y);
-		  float posslopey = (p3.y - p1.y) / (p3.x - p1.x);
-		  float uslope = (v3.textureCoordinates.x - v1.textureCoordinates.x) / (v3.textureCoordinates.y - v1.textureCoordinates.y);
-		  float vslope = (v3.textureCoordinates.y - v1.textureCoordinates.y) / (v3.textureCoordinates.x - v1.textureCoordinates.x);
-		  float dist = p2.y - p1.y;
-		  Vertex v4 = new Vertex(
-				new Vector3(
-						posslopex * dist,
-						posslopey * dist,
-						v1.position.z
-						),
-				new Vector3(
-						uslope * dist,
-						vslope * dist,
-						0
-						)
-		     );
-		  fillBottomFlatTriangle(v1, v2, v4, tex);
-		  fillTopFlatTriangle(v2, v4, v3, tex);
-	  }
-	}
-	
-	private void fillBottomFlatTriangle(Vertex v1, Vertex v2, Vertex v3, Texture tex) {
-		  float leftslope = (v2.position.x - v1.position.x) / (v2.position.y - v1.position.y);
-		  float rightslope = (v3.position.x - v1.position.x) / (v3.position.y - v1.position.y);
-
-		  float startx = v1.position.x;
-		  float endx = v1.position.x;
-
-		  for (int scanlineY = (int)v1.position.y; scanlineY <= v2.position.y; scanlineY++) {
-		    
-		    startx += leftslope;
-		    endx += rightslope;
-		  }
-		}
-		
-		private void fillTopFlatTriangle(Vertex v1, Vertex v2, Vertex v3, Texture tex) {
-		  float leftxslope = (v3.position.x - v1.position.x) / (v3.position.y - v1.position.y);
-		  float righxtslope = (v3.position.x - v2.position.x) / (v3.position.y - v2.position.y);
-		  float leftslope = (v2.position.x - v1.position.x) / (v2.position.y - v1.position.y);
-		  float rightslope = (v3.position.x - v1.position.x) / (v3.position.y - v1.position.y);
-
-		  float startx = v3.position.x;
-		  float endx = v3.position.x;
-
-		  for (int scanlineY = (int)v3.position.y; scanlineY > v1.position.y; scanlineY--) {
-			
-		    startx -= leftslope;
-		    endx -= rightslope;
-
-		    drawLine(
-		    		startx, scanlineY,
-		    		interpolate(v1.textureCoordinates.getU(), v3.textureCoordinates.getU(), gradient)
-		    	);
-		  }
-	}
-	
-	private void drawLine(int x, int y, float startu, float startv, float endu, float endv, int length, Texture tex) {
-		float uslope = (endu - startu) / (endv - startv);
-		float vslope = (endv - startv) / (endu - startu);
-		float u = startu, v = startv;
-		for (int i=0; i<length; i++) {
-			setPixel(
-					(int)x, y, 0,
-					tex.map(u, v)
-					);
-			u += uslope;
-			v += vslope;
-		}
-	}
-	*/
-	
 	//TODO: Create fragment class containing all vertcies, UVs, Texture, depth and resulting pixel color
-	public void drawTriangle(Vertex v1, Vertex v2, Vertex v3, Texture texture) {
-		if (isInBounds(v1.position) || isInBounds(v2.position) || isInBounds(v3.position)) { // TODO: Review
-			// Sort verts by height, v1 at top
-			if (v1.position.y > v2.position.y) {
-				Vertex temp = v2;
-				v2 = v1;
-				v1 = temp;
-			}
-				
-			if (v2.position.y > v3.position.y) {
-				Vertex temp = v2;
-				v2 = v3;
-				v3 = temp;
-					
+		public void drawTriangle(Vertex v1, Vertex v2, Vertex v3, Texture texture) {
+			if (isInBounds(v1.position) || isInBounds(v2.position) || isInBounds(v3.position)) { // TODO: Review
+				// Sort verts by height, v1 at top
 				if (v1.position.y > v2.position.y) {
-					temp = v2;
+					Vertex temp = v2;
 					v2 = v1;
 					v1 = temp;
 				}
-			}
-				
-				
-			Vector3 toppos = v1.position;
-			Vector3 middlepos = v2.position;
-			Vector3 bottompos = v3.position;
-			int top =    (int)toppos.y;
-			int middle = (int)middlepos.y;
-			int bottom = (int)bottompos.y;
-			
-			//Check if triangle is completely off screen
-			if (bottom < 0 || top > height)
-				return;
-			
-			// Crop start and end scanline of triangle to screen
-			if (top < 0)
-				top = 0;
-			if (bottom > height)
-				bottom = height;
-				
-			// Calculate slopes. How many pixels to move across to move down by 1 pixel 
-			float toptomiddlexslope = (middlepos.x - toppos.x) / (middlepos.y - toppos.y);
-			float toptobottomxslope = (bottompos.x - toppos.x) / (bottompos.y - toppos.y);
-			
-			// What side is the middle vertex?
-			if (toptomiddlexslope > toptobottomxslope) {
-				for (int scanline = top; scanline < bottom; scanline++) {
-					if (scanline < middle) {		
-						processScanline(scanline, v1, v3, v1, v2, texture);
-					} else {
-						processScanline(scanline, v1, v3, v2, v3, texture);
+					
+				if (v2.position.y > v3.position.y) {
+					Vertex temp = v2;
+					v2 = v3;
+					v3 = temp;
+						
+					if (v1.position.y > v2.position.y) {
+						temp = v2;
+						v2 = v1;
+						v1 = temp;
 					}
 				}
-			} else {
-				for (int scanline = top; scanline < bottom; scanline++) {
-					if (scanline < middle) {	
-						processScanline(scanline, v1, v2, v1, v3, texture);
-					} else {	
-						processScanline(scanline, v2, v3, v1, v3, texture);
+					
+					
+				Vector3 toppos 		= v1.position;
+				Vector3 middlepos	= v2.position;
+				Vector3 bottompos	= v3.position;
+				int top =    (int)toppos.y;
+				int middle = (int)middlepos.y;
+				int bottom = (int)bottompos.y;
+				
+				//Check if triangle is completely off screen
+				if (bottom < 0 || top > height)
+					return;
+				
+				// Crop start and end scanline of triangle to screen
+				middle = clamp(middle, 0, height);
+				bottom = clamp(bottom, 0, height);
+					
+				// Calculate slopes. How many pixels to move across to move down by 1 pixel
+				// TODO: Is there a faster way to determine if the middle vertex is on the right?
+				float toptomiddlexslope = (middlepos.x - toppos.x) / (middlepos.y - toppos.y);
+				float toptobottomxslope = (bottompos.x - toppos.x) / (bottompos.y - toppos.y);
+				
+				float
+				toptobottomdist = bottompos.y - toppos.y,
+				toptomiddledist = middlepos.y - toppos.y,
+				middletobottomdist = bottompos.y - middlepos.y,
+				startx = toppos.x,
+				endx   = toppos.x,
+				startz = toppos.z,
+				endz   = toppos.z,
+				startu = v1.textureCoordinates.getU(),
+				endu =   v1.textureCoordinates.getU(),
+				startv = v1.textureCoordinates.getV(),
+				endv =   v1.textureCoordinates.getV();
+				if (toptomiddlexslope > toptobottomxslope) { // Middle vertex on the right
+					float
+					leftxslope  = (bottompos.x - toppos.x) / toptobottomdist,
+					rightxslope = (middlepos.x - toppos.x) / toptomiddledist,
+					leftzslope  = (bottompos.z - toppos.z) / toptobottomdist,
+					rightzslope = (middlepos.z - toppos.z) / toptomiddledist,
+					leftuslope  = (v3.textureCoordinates.getU() - v1.textureCoordinates.getU()) / toptobottomdist,
+					rightuslope = (v2.textureCoordinates.getU() - v1.textureCoordinates.getU()) / toptomiddledist,
+					leftvslope  = (v3.textureCoordinates.getV() - v1.textureCoordinates.getV()) / toptobottomdist,
+					rightvslope = (v2.textureCoordinates.getV() - v1.textureCoordinates.getV()) / toptomiddledist;
+					if (top < 0) { // If top vertex is off screen
+						float difference = -top;
+						top = 0; // Start from top of screen instead
+						// Start values as if we have already looped until that scanline
+						startx 	+= leftxslope  * difference;
+						endx 	+= rightxslope * difference;
+						startz 	+= leftzslope  * difference;
+						endz 	+= rightzslope * difference;
+						startu 	+= leftuslope  * difference;
+						endu 	+= rightuslope * difference;
+						startv 	+= leftvslope  * difference;
+						endv 	+= rightvslope * difference;
+					}
+					
+					int scanline = top;
+					for (; scanline < middle; scanline++) {
+						drawScanline(scanline, (int)startx, (int)endx, startz, endz, startu, endu, startv, endv, texture);
+						
+						startx 	+= leftxslope;
+						endx 	+= rightxslope;
+						startz 	+= leftzslope;
+						endz 	+= rightzslope;
+						startu 	+= leftuslope;
+						endu	+= rightuslope;
+						startv 	+= leftvslope;
+						endv 	+= rightvslope;
+					}
+					
+					rightxslope =  (bottompos.x - middlepos.x) / middletobottomdist;
+					rightzslope =  (bottompos.z - middlepos.z) / middletobottomdist;
+					rightuslope =  (v3.textureCoordinates.getU() - v2.textureCoordinates.getU()) / middletobottomdist;
+					rightvslope =  (v3.textureCoordinates.getV() - v2.textureCoordinates.getV()) / middletobottomdist;
+					endx = middlepos.x;
+					endz = middlepos.z;
+					endu = v2.textureCoordinates.getU();
+					endv = v2.textureCoordinates.getV();
+					for (; scanline < bottom; scanline++) {
+						drawScanline(scanline, (int)startx, (int)endx, startz, endz, startu, endu, startv, endv, texture);
+						
+						startx 	+= leftxslope;
+						endx 	+= rightxslope;
+						startz 	+= leftzslope;
+						endz 	+= rightzslope;
+						startu 	+= leftuslope;
+						endu	+= rightuslope;
+						startv 	+= leftvslope;
+						endv 	+= rightvslope;
+					}
+				} else {
+					float
+					leftxslope  =  (middlepos.x - toppos.x) / toptomiddledist,
+					rightxslope =  (bottompos.x - toppos.x) / toptobottomdist,
+					leftzslope  =  (middlepos.z - toppos.z) / toptomiddledist,
+					rightzslope =  (bottompos.z - toppos.z) / toptobottomdist,
+					leftuslope  =  (v2.textureCoordinates.getU() - v1.textureCoordinates.getU()) / toptomiddledist,
+					rightuslope =  (v3.textureCoordinates.getU() - v1.textureCoordinates.getU()) / toptobottomdist,
+					leftvslope  =  (v2.textureCoordinates.getV() - v1.textureCoordinates.getV()) / toptomiddledist,
+					rightvslope =  (v3.textureCoordinates.getV() - v1.textureCoordinates.getV()) / toptobottomdist;
+					if (top < 0) { // If top vertex is off screen
+						float difference = -top;
+						top = 0; // Start from top of screen instead
+						// Start values as if we have already looped until that scanline
+						startx 	+= leftxslope  * difference;
+						endx 	+= rightxslope * difference;
+						startz 	+= leftzslope  * difference;
+						endz 	+= rightzslope * difference;
+						startu 	+= leftuslope  * difference;
+						endu 	+= rightuslope * difference;
+						startv 	+= leftvslope  * difference;
+						endv 	+= rightvslope * difference;
+					}
+					
+					int scanline = top;
+					for (; scanline < middle; scanline++) { 
+						drawScanline(scanline, (int)startx, (int)endx, startz, endz, startu, endu, startv, endv, texture);
+						
+						startx 	+= leftxslope;
+						endx 	+= rightxslope;
+						startz 	+= leftzslope;
+						endz 	+= rightzslope;
+						startu 	+= leftuslope;
+						endu	+= rightuslope;
+						startv 	+= leftvslope;
+						endv 	+= rightvslope;
+					}
+					
+					leftxslope = (bottompos.x - middlepos.x) / middletobottomdist;
+					leftzslope = (bottompos.z - middlepos.z) / middletobottomdist;
+					leftuslope = (v3.textureCoordinates.getU() - v2.textureCoordinates.getU()) / middletobottomdist;
+					leftvslope = (v3.textureCoordinates.getV() - v2.textureCoordinates.getV()) / middletobottomdist;
+					startx = middlepos.x;
+					startz = middlepos.z;
+					startu = v2.textureCoordinates.getU();
+					startv = v2.textureCoordinates.getV();
+					for (; scanline < bottom; scanline++) { 
+						drawScanline(scanline, (int)startx, (int)endx, startz, endz, startu, endu, startv, endv, texture);
+						
+						startx 	+= leftxslope;
+						endx 	+= rightxslope;
+						startz 	+= leftzslope;
+						endz 	+= rightzslope;
+						startu 	+= leftuslope;
+						endu	+= rightuslope;
+						startv 	+= leftvslope;
+						endv 	+= rightvslope;
 					}
 				}
 			}
 		}
-	}
 	
-	private void processScanline(int line, Vertex va, Vertex vb, Vertex vc, Vertex vd, Texture tex) {
-		Vector3 p1 = va.position;
-		Vector3 p2 = vb.position;
-		Vector3 p3 = vc.position;
-		Vector3 p4 = vd.position;
-
-		// Calculate how far down each edge
-		//TODO: Move to drawTriangle, precalc slopes, remove all interpolate
-		float leftslopepos =  (line - p1.y) / (p2.y - p1.y);
-		float rightslopepos = (line - p3.y) / (p4.y - p3.y);
-		leftslopepos =  clamp(leftslopepos);
-		rightslopepos = clamp(rightslopepos);
-		
-		int startx = 	(int)interpolate(p1.x, p2.x, leftslopepos);
-		int endx = 		(int)interpolate(p3.x, p4.x, rightslopepos);
-		
-		float startz = 	interpolate(p1.z, p2.z, leftslopepos);
-		float endz = 	interpolate(p3.z, p4.z, rightslopepos);
-
-		float startu = 	interpolate(va.textureCoordinates.getU(), vb.textureCoordinates.getU(), leftslopepos);
-		float endu = 	interpolate(vc.textureCoordinates.getU(), vd.textureCoordinates.getU(), rightslopepos);
-
-		float startv = 	interpolate(va.textureCoordinates.getV(), vb.textureCoordinates.getV(), leftslopepos);
-		float endv = 	interpolate(vc.textureCoordinates.getV(), vd.textureCoordinates.getV(), rightslopepos);
-
-		
+	private void drawScanline(int y, int startx, int endx, float startz, float endz, float startu, float endu, float startv, float endv, Texture tex) {
 		// How much difference in attributes per pixel
-		float scanlinelength = 1f / (endx - startx); // Simple inverse. multiplying is faster than dividing
-		float uslope = (endu - startu) * scanlinelength;
-		float vslope = (endv - startv) * scanlinelength;
-		float zslope = (endz - startz) * scanlinelength;
+		float scanlinelength = endx - startx;
+		float uslope = (endu - startu) / scanlinelength;
+		float vslope = (endv - startv) / scanlinelength;
+		float zslope = (endz - startz) / scanlinelength;
 		
 		float u = startu;
 		float v = startv;
@@ -396,9 +376,9 @@ public class Rasterizer {
 			startx = 0;
 			
 			// Move start UV and depth position to where they would be now startx has moved
-			u += difference * uslope;
-			v += difference * vslope;
-			z += difference * zslope;
+			u += uslope * difference;
+			v += vslope * difference;
+			z += zslope * difference;
 		}
 		// End early if goes off screen
 		if (endx > width)
@@ -411,7 +391,7 @@ public class Rasterizer {
 
 			// TODO: Calculate world position of pixel
 			// TODO: Calculate distance from camera to pixel
-			setPixel(x, line, z, tex.map(u, v));
+			setPixel(x, y, z, tex.map(u, v));
 		}
 	}
 	
@@ -420,6 +400,17 @@ public class Rasterizer {
 	maxdepth = Float.MIN_VALUE;
 	private void setPixel(int x, int y, float z, Color color) {
 		int pixelindex = y*width + x;
+		
+		/*
+		if (pixelindex >= pixels.length) {
+			System.err.println("Tried to draw pixel X: "+ x + ", Y: "+ y);
+			return;
+		}
+		if (pixelindex < 0) {
+			System.err.println("Tried to draw pixel X: "+ x + ", Y: "+ y);
+			return;
+		}
+		 */
 		
 		if (depthBuffer[pixelindex] < z) 
 			return;

@@ -19,6 +19,11 @@ public class Vector3 {
 		y = ypos;
 		z = zpos;
 	}
+	public void set(float x, float y, float z) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
+	}
 	
 	public double getMagnitude() {
 		return Math.sqrt((x * x) + (y * y) + (z * z));

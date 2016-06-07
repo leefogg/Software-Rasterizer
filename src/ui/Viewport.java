@@ -26,10 +26,8 @@ public class Viewport extends Canvas implements MouseWheelListener {
 
 	private BufferStrategy buffer;
 
-	private FrameCounter fc = new FrameCounter();
-
 	private Rasterizer renderer;
-	private Camera camera = new Camera(new Vector3(0,2,5), new Vector3(0,1,0));
+	private Camera camera = new Camera(new Vector3(2,3,5), new Vector3(0,1,0));
 	
 	Mesh glados, floor;
 
@@ -76,28 +74,28 @@ public class Viewport extends Canvas implements MouseWheelListener {
 			tick();
 			
 			renderer.clear(GL_BUFFER_BIT | GL_DEPTH_BIT);
+			
+			long beforetime = System.nanoTime();
 			renderer.render(floor, camera);
 			renderer.render(glados, camera);
+			long timetaken = System.nanoTime() - beforetime;
+			
 			renderer.swapBuffers();
 			//graphics.clearRect(0, 0, getWidth(), getHeight());
-			graphics.drawImage(renderer.getFrameBuffer(), 0, 0, this);
-
+			graphics.drawImage(renderer.getFrameBuffer(), 0, 0, Window.width, Window.height, this);
+			
 			graphics.setColor(Color.green);
-			graphics.drawString("FPS: " + String.valueOf(fc.fps), 5, 15);
+			graphics.drawString("FPS: " + String.valueOf(1000000000 / timetaken), 5, 15);
 
 			if(!buffer.contentsLost())
 				buffer.show();
-
-			fc.newFrame();
 		} 
 	}
 
 	float sincos = 0;
-	float stepsize = (float)Math.PI*2/1000f;
+	float stepsize = (float)Math.PI*2/2000f;
 	float distance = 5;
 	private void tick() {
-		/*
-		 */
 		Vector3 pos = camera.getPosition();
 		pos.x = (float)Math.cos(sincos) * distance;
 		pos.z = (float)Math.sin(sincos) * distance;
