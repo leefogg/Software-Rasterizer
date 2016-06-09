@@ -6,8 +6,6 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
-import engine.Camera;
-import engine.Rasterizer;
 import engine.math.Matrix;
 import engine.math.Vector3;
 import engine.models.Materials.ImageTexture;
@@ -15,7 +13,8 @@ import engine.models.Materials.ImageTexture;
 public class Mesh {
 	public Vertex[] 
 			vertcies,
-			transformedvertcies;
+			transformedvertcies, //TODO: Change to Vector3[]
+			projectedvertcies; //TODO: Change to Vector3[]
 	public Face[] faces;
 	private Vector3 
 	position = Vector3.zero.Clone(),
@@ -26,10 +25,13 @@ public class Mesh {
 	
 	public Mesh(Vertex[] verticies, Face[] faces, Texture tex) {
 		this.vertcies = verticies;
+		
 		transformedvertcies = new Vertex[vertcies.length];
+		projectedvertcies = new Vertex[vertcies.length];
 		for (int i=0; i<vertcies.length; i++) {
 			Vertex vertex = vertcies[i];
-			transformedvertcies[i] = new Vertex(vertex.position.Clone(), vertex.textureCoordinates);
+			projectedvertcies[i] 	= new Vertex(vertex.position.Clone(), vertex.textureCoordinates);
+			transformedvertcies[i] 	= new Vertex(vertex.position.Clone(), vertex.textureCoordinates);
 		}
 			
 		this.faces = faces;
@@ -38,9 +40,15 @@ public class Mesh {
 		updateWorldMatrix();
 	}
 	
-	public void projectVertcies(Matrix transformmatrix) {
-		for (int i=0; i<vertcies.length; i++) // TODO: Make projectPositions method that takes all verts
-			Matrix.transformCoordinates(vertcies[i].position, transformmatrix, transformedvertcies[i].position);
+	public void projectVertcies(Matrix projectionmatrix) {
+		for (int i=0; i<vertcies.length; i++) {
+			Matrix.transformCoordinates(vertcies[i].position, projectionmatrix, projectedvertcies[i].position);
+		}
+	}
+	private void transformVertcies(Matrix transformmatrix) {
+		for (int i=0; i<vertcies.length; i++) {
+			Matrix.transformCoordinates(vertcies[i].position, transformmatrix, transformedvertcies[i].position);			
+		}
 	}
 	
 	public Vector3 getPosition() {
@@ -51,21 +59,24 @@ public class Mesh {
 		return rotation.Clone();
 	}
 	
+	public void setPosition(Vector3 pos) {
+		setPosition(pos.x, pos.y, pos.z);
+	}
 	//TODO: Add methods to transform raw vert's positions
 	public void setPosition(float x, float y, float z) {
 		position.x = x;
 		position.y = y;
 		position.z = z;
+		
 		updateWorldMatrix();
+		transformVertcies(worldmatrix);
 	}
-	public void setPosition(Vector3 pos) {
-		position = pos;
-		updateWorldMatrix();
-	}
-	
+		
 	public void setRotation(Vector3 rot) {
 		rotation = rot;
+		
 		updateWorldMatrix();
+		transformVertcies(worldmatrix);
 	}
 	
 	private void updateWorldMatrix() {

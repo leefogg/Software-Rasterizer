@@ -82,7 +82,7 @@ public class Viewport extends Canvas implements MouseWheelListener {
 			
 			renderer.swapBuffers();
 			//graphics.clearRect(0, 0, getWidth(), getHeight());
-			graphics.drawImage(renderer.getFrameBuffer(), 0, 0, Window.width, Window.height, this);
+			graphics.drawImage(renderer.getDepthBuffer(), 0, 0, Window.width, Window.height, this);
 			
 			graphics.setColor(Color.green);
 			graphics.drawString("FPS: " + String.valueOf(1000000000 / timetaken), 5, 15);

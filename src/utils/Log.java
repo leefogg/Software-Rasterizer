@@ -5,6 +5,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 public class Log {
+	private static final String newline = System.getProperty("line.separator");
+	
 	private static FileWriter outfile;
 	
 	public static void init() throws IOException {
@@ -24,8 +26,7 @@ public class Log {
 
 	public static void writeLine(String line) {
 		try {
-			outfile.write(line + "\n");
-			System.out.println(line);
+			outfile.write(line + newline);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
