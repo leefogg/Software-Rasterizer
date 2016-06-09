@@ -77,7 +77,7 @@ public final class ImageTexture extends Texture {
 		return pixels.length;
 	}
 	
-	public Color map(float u, float v) {
+	public final Color map(float u, float v) {
 		u = Math.abs(u);
 		v = Math.abs(v);
 		int x = (int)(u * width * repeatX) + offsetX;
