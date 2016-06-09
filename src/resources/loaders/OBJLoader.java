@@ -103,6 +103,7 @@ public class OBJLoader {
 						indicies[2]
 						);
 
+				//TODO: Move to Model class
 				newface.normal = calculateFaceNormal(
 						v1.position,
 						v2.position,
@@ -120,11 +121,11 @@ public class OBJLoader {
 						throw new IndexOutOfBoundsException("Pointer to undefined UV coordinate (" + indicies[5] + ") on line " + line + ".");
 					
 					if (v1.textureCoordinates != UVSet.zero)
-						Log.write("Redefinition of UV for vertex " +indicies[0] + ".");
+						Log.writeLine("Redefinition of UV for vertex " +indicies[0] + ".");
 					if (v2.textureCoordinates != UVSet.zero)
-						Log.write("Redefinition of UV for vertex " +indicies[1] + ".");
+						Log.writeLine("Redefinition of UV for vertex " +indicies[1] + ".");
 					if (v3.textureCoordinates != UVSet.zero)
-						Log.write("Redefinition of UV for vertex " +indicies[2] + ".");
+						Log.writeLine("Redefinition of UV for vertex " +indicies[2] + ".");
 					
 					v1.textureCoordinates = uvlist.get(indicies[3]);
 					v2.textureCoordinates = uvlist.get(indicies[4]);
