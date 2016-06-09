@@ -36,12 +36,16 @@ public class Camera {
 		updateViewMatrix();
 	}
 	
-	private void updateViewMatrix() {
-		Matrix.lookAtLH(position, target, Vector3.up, viewMatrix);
-	}
-	
 	public Vector3 getAimDirection() {
 		return target.Clone().subtract(position).normalize();
+	}
+	
+	public double getDistanceFromCamera(Vector3 point) {
+		return Vector3.getDistance(point, position);
+	}
+	
+	private void updateViewMatrix() {
+		Matrix.lookAtLH(position, target, Vector3.up, viewMatrix);
 	}
 	
 	public Camera Clone() {

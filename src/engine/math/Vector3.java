@@ -19,18 +19,18 @@ public class Vector3 {
 		y = ypos;
 		z = zpos;
 	}
-	public void set(float x, float y, float z) {
+	public final void set(float x, float y, float z) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
 	}
 	
-	public double getMagnitude() {
+	public final double getMagnitude() {
 		return Math.sqrt((x * x) + (y * y) + (z * z));
 	}
 	// TODO: dont always return a new vector
 	
-	public Vector3 normalize() {
+	public final Vector3 normalize() {
 		double length = getMagnitude();
 		if (length == 0) return this;
 		return divide((float)length);
@@ -42,6 +42,13 @@ public class Vector3 {
 	
 	public static Vector3 lookAt(Vector3 o, Vector3 p) {
 		return Vector3.subtract(o, p).divide((float)p.getMagnitude());
+	}
+	
+	public static final double getDistance(Vector3 p1, Vector3 p2) {
+		float x = p1.x - p2.x;
+		float y = p1.y - p2.y;
+		float z = p1.z - p2.z;
+		return Math.sqrt((x * x) + (y * y) + (z * z));
 	}
 	
 	public Vector3 crossProduct(Vector3 other) {
@@ -67,7 +74,6 @@ public class Vector3 {
 	public float dotProduct(Vector3 other) {
 		return dotProduct(this, other);
 	}
-	
 	
 	public Vector3 scale(float scale) {
 		x *= scale;

@@ -68,6 +68,7 @@ bin
 backup
 Insperation
 *.log
+*.bat
 /.settings
 src/ui
 src/utils

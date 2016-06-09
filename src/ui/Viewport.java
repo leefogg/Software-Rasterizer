@@ -49,7 +49,7 @@ public class Viewport extends Canvas implements MouseWheelListener {
 			e.printStackTrace();
 		}
 
-		renderer = new Rasterizer(0.9f, 320, 240, 0.01f, 1f);
+		renderer = new Rasterizer(0.9f, 320, 240, 1f, 10f);
 		renderer.setClearColor(0xFF000000);
 		renderer.enable(GL_CULL_FACE);
 		renderer.cullFace(GL_BACK);
@@ -82,7 +82,7 @@ public class Viewport extends Canvas implements MouseWheelListener {
 			
 			renderer.swapBuffers();
 			//graphics.clearRect(0, 0, getWidth(), getHeight());
-			graphics.drawImage(renderer.getDepthBuffer(), 0, 0, Window.width, Window.height, this);
+			graphics.drawImage(renderer.getFrameBuffer(), 0, 0, Window.width, Window.height, this);
 			
 			graphics.setColor(Color.green);
 			graphics.drawString("FPS: " + String.valueOf(1000000000 / timetaken), 5, 15);
@@ -93,7 +93,7 @@ public class Viewport extends Canvas implements MouseWheelListener {
 	}
 
 	float sincos = 0;
-	float stepsize = (float)Math.PI*2/2000f;
+	float stepsize = (float)Math.PI*2/1000f;
 	float distance = 5;
 	private void tick() {
 		Vector3 pos = camera.getPosition();

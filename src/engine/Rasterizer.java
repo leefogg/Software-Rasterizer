@@ -141,12 +141,10 @@ public class Rasterizer {
 	}
 	
 	public BufferedImage getDepthBuffer() {
-		System.out.println(mindepth);
-		System.out.println(maxdepth);
 		BufferedImage depthbuffer = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
 		for (int y=0; y<height; y++) {
 			for (int x=0; x<width; x++) {
-				int depth = (int)map(depthBuffer[y*width + x], mindepth, maxdepth, 255, 0);
+				int depth = (int)map(depthBuffer[y*width + x], znear, zfar, 255, 0);
 				int rgb = (0xFF << 24) | (depth << 16) | (depth << 8) | depth;
 				depthbuffer.setRGB(x, y, rgb);
 			}
@@ -192,13 +190,13 @@ public class Rasterizer {
 					mesh.projectedvertcies[face.vertex3],
 					mesh.texture
 				);
-			drawTriangle(currentFragment);
+			drawTriangle(currentFragment, cam);
 		}
 	}
 	
 	// TODO: Create fragment class containing all vertcies, UVs, Texture, depth
 	// and resulting pixel color
-	public void drawTriangle(Fragment f) {
+	public void drawTriangle(Fragment f, Camera cam) {
 		if (f.isOnScreen(boundingbox)) {
 			Vector3 toppos 		= f.screentop.position;
 			Vector3 middlepos 	= f.screenmiddle.position;
@@ -208,6 +206,7 @@ public class Rasterizer {
 			int bottom 	= (int)bottompos.y;
 
 			// Check if triangle is completely off screen
+			//TOOD: is this required now fragment has AABB?
 			if (bottom < 0 || top > height)
 				return;
 
@@ -218,170 +217,226 @@ public class Rasterizer {
 			float 	toptobottomdist 	= bottompos.y - toppos.y,
 					toptomiddledist 	= middlepos.y - toppos.y,
 					middletobottomdist 	= bottompos.y - middlepos.y,
-					startx 	= toppos.x, endx = toppos.x,
-					startz 	= toppos.z, endz = toppos.z,
-					startu 	= f.screentop.textureCoordinates.u,
-					endu 	= f.screentop.textureCoordinates.u,
-					startv 	= f.screentop.textureCoordinates.v,
-					endv 	= f.screentop.textureCoordinates.v;
+					screenstartx 		= toppos.x,
+					screenendx 			= toppos.x,
+					texturestartu 		= f.screentop.textureCoordinates.u,
+					textureendu 		= f.screentop.textureCoordinates.u,
+					texturestartv 		= f.screentop.textureCoordinates.v,
+					textureendv 		= f.screentop.textureCoordinates.v,
+					worldstartx			= f.worldtop.position.x,
+					worldendx			= f.worldtop.position.x,
+					worldstarty			= f.worldtop.position.y,
+					worldendy			= f.worldtop.position.y,
+					worldstartz 		= f.worldtop.position.z,
+					worldendz 			= f.worldtop.position.z;
 			if (f.middleOnRight()) { // Middle vertex on the right
-				float 	leftxslope  = (bottompos.x - toppos.x) / toptobottomdist,
-						rightxslope = (middlepos.x - toppos.x) / toptomiddledist,
-						leftzslope  = (bottompos.z - toppos.z) / toptobottomdist,
-						rightzslope = (middlepos.z - toppos.z) / toptomiddledist,
-						leftuslope  = (f.screenbottom.textureCoordinates.u - f.screentop.textureCoordinates.u) / toptobottomdist,
-						rightuslope = (f.screenmiddle.textureCoordinates.u - f.screentop.textureCoordinates.u) / toptomiddledist,
-						leftvslope  = (f.screenbottom.textureCoordinates.v - f.screentop.textureCoordinates.v) / toptobottomdist,
-						rightvslope = (f.screenmiddle.textureCoordinates.v - f.screentop.textureCoordinates.v) / toptomiddledist;
+				float 	screenleftxslope  	= (bottompos.x - toppos.x) / toptobottomdist,
+						screenrightxslope 	= (middlepos.x - toppos.x) / toptomiddledist,
+						textureleftuslope  	= (f.screenbottom.textureCoordinates.u - f.screentop.textureCoordinates.u) / toptobottomdist,
+						texturerightuslope 	= (f.screenmiddle.textureCoordinates.u - f.screentop.textureCoordinates.u) / toptomiddledist,
+						textureleftvslope  	= (f.screenbottom.textureCoordinates.v - f.screentop.textureCoordinates.v) / toptobottomdist,
+						texturerightvslope 	= (f.screenmiddle.textureCoordinates.v - f.screentop.textureCoordinates.v) / toptomiddledist,
+						worldleftxslope  	= (f.worldbottom.position.x - f.worldtop.position.x) / toptobottomdist,
+						worldrightxslope 	= (f.worldmiddle.position.x - f.worldtop.position.x) / toptomiddledist,
+						worldleftyslope  	= (f.worldbottom.position.y - f.worldtop.position.y) / toptobottomdist,
+						worldrightyslope 	= (f.worldmiddle.position.y - f.worldtop.position.y) / toptomiddledist,
+						worldleftzslope  	= (f.worldbottom.position.z - f.worldtop.position.z) / toptobottomdist,
+						worldrightzslope 	= (f.worldmiddle.position.z - f.worldtop.position.z) / toptomiddledist;
 				if (top < 0) { // If top vertex is off screen
 					float difference = -top;
 					top = 0; // Start from top of screen instead
 					
 					// Start values as if we have already looped until that scanline
-					startx 	+= leftxslope  * difference;
-					endx 	+= rightxslope * difference;
-					startz 	+= leftzslope  * difference;
-					endz 	+= rightzslope * difference;
-					startu 	+= leftuslope  * difference;
-					endu 	+= rightuslope * difference;
-					startv 	+= leftvslope  * difference;
-					endv 	+= rightvslope * difference;
+					screenstartx 	+= screenleftxslope   * difference;
+					screenendx 		+= screenrightxslope  * difference;
+					texturestartu 	+= textureleftuslope  * difference;
+					textureendu 	+= texturerightuslope * difference;
+					texturestartv 	+= textureleftvslope  * difference;
+					textureendv 	+= texturerightvslope * difference;
+					worldstartx 	+= worldleftxslope  * difference;
+					worldendx 		+= worldrightxslope * difference;
+					worldstarty 	+= worldleftyslope  * difference;
+					worldendy 		+= worldrightyslope * difference;
+					worldstartz 	+= worldleftzslope  * difference;
+					worldendz 		+= worldrightzslope * difference;
 				}
 
 				int scanline = top;
 				for (; scanline < middle; scanline++) {
-					drawScanline(scanline, (int)startx, (int)endx, startz, endz, startu, endu, startv, endv, f.texture);
+					drawScanline(scanline, (int)screenstartx, (int)screenendx, worldstartx, worldendx, worldstarty, worldendy, worldstartz, worldendz, cam, texturestartu, textureendu, texturestartv, textureendv, f.texture);
 
-					startx 	+= leftxslope;
-					endx 	+= rightxslope;
-					startz 	+= leftzslope;
-					endz 	+= rightzslope;
-					startu 	+= leftuslope;
-					endu 	+= rightuslope;
-					startv 	+= leftvslope;
-					endv 	+= rightvslope;
+					screenstartx 	+= screenleftxslope;
+					screenendx 		+= screenrightxslope;
+					texturestartu 	+= textureleftuslope;
+					textureendu 	+= texturerightuslope;
+					texturestartv 	+= textureleftvslope;
+					textureendv 	+= texturerightvslope;
+					worldstartx 	+= worldleftxslope;
+					worldendx 		+= worldrightxslope;
+					worldstarty 	+= worldleftyslope;
+					worldendy 		+= worldrightyslope;
+					worldstartz 	+= worldleftzslope;
+					worldendz 		+= worldrightzslope;
 				}
 
-				rightxslope = (bottompos.x - middlepos.x) / middletobottomdist;
-				rightzslope = (bottompos.z - middlepos.z) / middletobottomdist;
-				rightuslope = (f.screenbottom.textureCoordinates.u - f.screenmiddle.textureCoordinates.u) / middletobottomdist;
-				rightvslope = (f.screenbottom.textureCoordinates.v - f.screenmiddle.textureCoordinates.v) / middletobottomdist;
-				endx = middlepos.x;
-				endz = middlepos.z;
-				endu = f.screenmiddle.textureCoordinates.u;
-				endv = f.screenmiddle.textureCoordinates.v;
+				screenrightxslope 	= (bottompos.x - middlepos.x) / middletobottomdist;
+				texturerightuslope 	= (f.screenbottom.textureCoordinates.u - f.screenmiddle.textureCoordinates.u) / middletobottomdist;
+				texturerightvslope 	= (f.screenbottom.textureCoordinates.v - f.screenmiddle.textureCoordinates.v) / middletobottomdist;
+				worldrightxslope 	= (f.worldbottom.position.x - f.worldmiddle.position.x) / middletobottomdist;
+				worldrightyslope 	= (f.worldbottom.position.y - f.worldmiddle.position.y) / middletobottomdist;
+				worldrightzslope 	= (f.worldbottom.position.z - f.worldmiddle.position.z) / middletobottomdist;
+				screenendx 			= middlepos.x;
+				textureendu = f.screenmiddle.textureCoordinates.u;
+				textureendv = f.screenmiddle.textureCoordinates.v;
+				worldendx 	= f.worldmiddle.position.x;
+				worldendy 	= f.worldmiddle.position.y;
+				worldendz 	= f.worldmiddle.position.z;
 				for (; scanline < bottom; scanline++) {
-					drawScanline(scanline, (int)startx, (int)endx, startz, endz, startu, endu, startv, endv, f.texture);
+					drawScanline(scanline, (int)screenstartx, (int)screenendx, worldstartx, worldendx, worldstarty, worldendy, worldstartz, worldendz, cam, texturestartu, textureendu, texturestartv, textureendv, f.texture);
 
-					startx 	+= leftxslope;
-					endx 	+= rightxslope;
-					startz 	+= leftzslope;
-					endz 	+= rightzslope;
-					startu 	+= leftuslope;
-					endu 	+= rightuslope;
-					startv 	+= leftvslope;
-					endv 	+= rightvslope;
+					screenstartx 	+= screenleftxslope;
+					screenendx 		+= screenrightxslope;
+					texturestartu 	+= textureleftuslope;
+					textureendu 	+= texturerightuslope;
+					texturestartv 	+= textureleftvslope;
+					textureendv 	+= texturerightvslope;
+					worldstartx 	+= worldleftxslope;
+					worldendx 		+= worldrightxslope;
+					worldstarty 	+= worldleftyslope;
+					worldendy 		+= worldrightyslope;
+					worldstartz 	+= worldleftzslope;
+					worldendz 		+= worldrightzslope;
 				}
 			} else {
-				float 	leftxslope  = (middlepos.x - toppos.x) / toptomiddledist,
-						rightxslope = (bottompos.x - toppos.x) / toptobottomdist,
-						leftzslope  = (middlepos.z - toppos.z) / toptomiddledist,
-						rightzslope = (bottompos.z - toppos.z) / toptobottomdist,
-						leftuslope  = (f.screenmiddle.textureCoordinates.u - f.screentop.textureCoordinates.u) / toptomiddledist,
-						rightuslope = (f.screenbottom.textureCoordinates.u - f.screentop.textureCoordinates.u) / toptobottomdist,
-						leftvslope  = (f.screenmiddle.textureCoordinates.v - f.screentop.textureCoordinates.v) / toptomiddledist,
-						rightvslope = (f.screenbottom.textureCoordinates.v - f.screentop.textureCoordinates.v) / toptobottomdist;
+				float 	screenleftxslope  	= (middlepos.x - toppos.x) / toptomiddledist,
+						screenrightxslope 	= (bottompos.x - toppos.x) / toptobottomdist,
+						textureleftuslope  	= (f.screenmiddle.textureCoordinates.u - f.screentop.textureCoordinates.u) / toptomiddledist,
+						texturerightuslope 	= (f.screenbottom.textureCoordinates.u - f.screentop.textureCoordinates.u) / toptobottomdist,
+						textureleftvslope  	= (f.screenmiddle.textureCoordinates.v - f.screentop.textureCoordinates.v) / toptomiddledist,
+						texturerightvslope 	= (f.screenbottom.textureCoordinates.v - f.screentop.textureCoordinates.v) / toptobottomdist,
+						worldleftxslope  	= (f.worldmiddle.position.x - f.worldtop.position.x) / toptomiddledist,
+						worldrightxslope 	= (f.worldbottom.position.x - f.worldtop.position.x) / toptobottomdist,
+						worldleftyslope  	= (f.worldmiddle.position.y - f.worldtop.position.y) / toptomiddledist,
+						worldrightyslope 	= (f.worldbottom.position.y - f.worldtop.position.y) / toptobottomdist,
+						worldleftzslope  	= (f.worldmiddle.position.z - f.worldtop.position.z) / toptomiddledist,
+						worldrightzslope 	= (f.worldbottom.position.z - f.worldtop.position.z) / toptobottomdist;
 				if (top < 0) { // If top vertex is off screen
 					float difference = -top;
 					top = 0; // Start from top of screen instead
 					
 					// Start values as if we have already looped until that scanline
-					startx 	+= leftxslope  * difference;
-					endx 	+= rightxslope * difference;
-					startz 	+= leftzslope  * difference;
-					endz 	+= rightzslope * difference;
-					startu 	+= leftuslope  * difference;
-					endu 	+= rightuslope * difference;
-					startv 	+= leftvslope  * difference;
-					endv 	+= rightvslope * difference;
+					screenstartx 	+= screenleftxslope   * difference;
+					screenendx 		+= screenrightxslope  * difference;
+					texturestartu 	+= textureleftuslope  * difference;
+					textureendu 	+= texturerightuslope * difference;
+					texturestartv 	+= textureleftvslope  * difference;
+					textureendv 	+= texturerightvslope * difference;
+					worldstartx 	+= worldleftxslope  * difference;
+					worldendx 		+= worldrightxslope * difference;
+					worldstarty 	+= worldleftyslope  * difference;
+					worldendy 		+= worldrightyslope * difference;
+					worldstartz 	+= worldleftzslope  * difference;
+					worldendz 		+= worldrightzslope * difference;
 				}
 
 				int scanline = top;
 				for (; scanline < middle; scanline++) {
-					drawScanline(scanline, (int)startx, (int)endx, startz, endz, startu, endu, startv, endv, f.texture);
+					drawScanline(scanline, (int)screenstartx, (int)screenendx, worldstartx, worldendx, worldstarty, worldendy, worldstartz, worldendz, cam, texturestartu, textureendu, texturestartv, textureendv, f.texture);
 
-					startx 	+= leftxslope;
-					endx 	+= rightxslope;
-					startz 	+= leftzslope;
-					endz 	+= rightzslope;
-					startu 	+= leftuslope;
-					endu 	+= rightuslope;
-					startv 	+= leftvslope;
-					endv 	+= rightvslope;
+					screenstartx 	+= screenleftxslope;
+					screenendx 		+= screenrightxslope;
+					texturestartu 	+= textureleftuslope;
+					textureendu 	+= texturerightuslope;
+					texturestartv 	+= textureleftvslope;
+					textureendv 	+= texturerightvslope;
+					worldstartx 	+= worldleftxslope;
+					worldendx 		+= worldrightxslope;
+					worldstarty 	+= worldleftyslope;
+					worldendy 		+= worldrightyslope;
+					worldstartz 	+= worldleftzslope;
+					worldendz 		+= worldrightzslope;
 				}
 
-				leftxslope = (bottompos.x - middlepos.x) / middletobottomdist;
-				leftzslope = (bottompos.z - middlepos.z) / middletobottomdist;
-				leftuslope = (f.screenbottom.textureCoordinates.u - f.screenmiddle.textureCoordinates.u) / middletobottomdist;
-				leftvslope = (f.screenbottom.textureCoordinates.v - f.screenmiddle.textureCoordinates.v) / middletobottomdist;
-				startx = middlepos.x;
-				startz = middlepos.z;
-				startu = f.screenmiddle.textureCoordinates.u;
-				startv = f.screenmiddle.textureCoordinates.v;
+				screenleftxslope 	= (bottompos.x - middlepos.x) / middletobottomdist;
+				textureleftuslope 	= (f.screenbottom.textureCoordinates.u - f.screenmiddle.textureCoordinates.u) / middletobottomdist;
+				textureleftvslope 	= (f.screenbottom.textureCoordinates.v - f.screenmiddle.textureCoordinates.v) / middletobottomdist;
+				worldleftxslope 	= (f.worldbottom.position.x - f.worldmiddle.position.x) / middletobottomdist;
+				worldleftyslope 	= (f.worldbottom.position.y - f.worldmiddle.position.y) / middletobottomdist;
+				worldleftzslope 	= (f.worldbottom.position.z - f.worldmiddle.position.z) / middletobottomdist;
+				screenstartx 		= middlepos.x;
+				texturestartu 	= f.screenmiddle.textureCoordinates.u;
+				texturestartv 	= f.screenmiddle.textureCoordinates.v;
+				worldstartx 	= f.worldmiddle.position.x;
+				worldstarty 	= f.worldmiddle.position.y;
+				worldstartz 	= f.worldmiddle.position.z;
 				for (; scanline < bottom; scanline++) {
-					drawScanline(scanline, (int)startx, (int)endx, startz, endz, startu, endu, startv, endv, f.texture);
+					drawScanline(scanline, (int)screenstartx, (int)screenendx, worldstartx, worldendx, worldstarty, worldendy, worldstartz, worldendz, cam, texturestartu, textureendu, texturestartv, textureendv, f.texture);
 
-					startx 	+= leftxslope;
-					endx 	+= rightxslope;
-					startz 	+= leftzslope;
-					endz 	+= rightzslope;
-					startu 	+= leftuslope;
-					endu 	+= rightuslope;
-					startv 	+= leftvslope;
-					endv 	+= rightvslope;
+					screenstartx 	+= screenleftxslope;
+					screenendx 		+= screenrightxslope;
+					texturestartu 	+= textureleftuslope;
+					textureendu 	+= texturerightuslope;
+					texturestartv 	+= textureleftvslope;
+					textureendv 	+= texturerightvslope;
+					worldstartx 	+= worldleftxslope;
+					worldendx 		+= worldrightxslope;
+					worldstarty 	+= worldleftyslope;
+					worldendy 		+= worldrightyslope;
+					worldstartz 	+= worldleftzslope;
+					worldendz 		+= worldrightzslope;
 				}
 			}
 		}
 	}
 
-	private void drawScanline(int y, int startx, int endx, float startz, float endz, float startu, float endu, float startv, float endv, Texture tex) {
+	private Vector3 worldpos = new Vector3(0,0,0);
+	private void drawScanline(int y, int screenstartx, int screenendx, float worldstartx, float worldendx, float worldstarty, float worldendy, float worldstartz, float worldendz, Camera camera, float texturestartu, float textureendu, float texturestartv, float textureendv, Texture tex) {
 		// How much difference in attributes per pixel
-		float scanlinelength = endx - startx;
-		float uslope = (endu - startu) / scanlinelength;
-		float vslope = (endv - startv) / scanlinelength;
-		float zslope = (endz - startz) / scanlinelength;
+		float scanlinelength = screenendx - screenstartx;
+		float uslope = (textureendu - texturestartu)/ scanlinelength;
+		float vslope = (textureendv - texturestartv)/ scanlinelength;
+		float xslope = (worldendx - worldstartx) 	/ scanlinelength;
+		float yslope = (worldendy - worldstarty) 	/ scanlinelength;
+		float zslope = (worldendz - worldstartz) 	/ scanlinelength;
 		
-		float u = startu;
-		float v = startv;
-		float z = startz;
+		float u = texturestartu;
+		float v = texturestartv;
+		float worldx = worldstartx;
+		float worldy = worldstarty;
+		float worldz = worldstartz;
 		// Clip start and end to screen
-		if (startx < 0) {
-			int difference = -startx;
-			startx = 0;
+		if (screenstartx < 0) {
+			float difference = -screenstartx;
+			screenstartx = 0;
 			
 			// Move start UV and depth position to where they would be now startx has moved
 			u += uslope * difference;
 			v += vslope * difference;
-			z += zslope * difference;
+			worldx += xslope * difference;
+			worldy += yslope * difference;
+			worldz += zslope * difference;
 		}
 		// End early if goes off screen
-		if (endx > width)
-			endx = width;
+		if (screenendx > width)
+			screenendx = width;
 		
-		for (int x = startx; x < endx; x++) {
-			z += zslope;
+		for (int x = screenstartx; x < screenendx; x++) {
+			worldx += xslope;
+			worldy += yslope;
+			worldz += zslope;
 			u += uslope;
 			v += vslope;
-
-			// TODO: Calculate world position of pixel
-			// TODO: Calculate distance from camera to pixel
-			setPixel(x, y, z, tex.map(u, v));
+			
+			worldpos.set(worldx, worldy, worldz);
+			float distance = (float)camera.getDistanceFromCamera(worldpos);
+			setPixel(x,
+					 y,
+					 distance,
+					 tex.map(u, v)
+				);
 		}
 	}
 	
-	float 
-	mindepth = Float.MAX_VALUE,
-	maxdepth = Float.MIN_VALUE;
 	private void setPixel(int x, int y, float z, Color color) {
 		int pixelindex = y*width + x;
 		
@@ -395,13 +450,11 @@ public class Rasterizer {
 			return;
 		}
 		 */
+		if (z > zfar || z < znear)
+			return;
 		
 		if (depthBuffer[pixelindex] < z) 
 			return;
-		
-		//TODO: Add znear and zfar
-		if (z > maxdepth) maxdepth = z;
-		if (z < mindepth) mindepth = z;
 		
 		// TOOD: Fix depth buffer values
 		depthBuffer[pixelindex] = z;

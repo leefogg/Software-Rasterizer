@@ -27,34 +27,29 @@ public final class Fragment {
 			Vertex temp = screenv2;
 			screenv2 = screenv1;
 			screenv1 = temp;
+			
+			temp = worldv1;
+			worldv1 = worldv2;
+			worldv2 = temp;
 		}
 			
 		if (screenv2.position.y > screenv3.position.y) {
 			Vertex temp = screenv2;
 			screenv2 = screenv3;
 			screenv3 = temp;
+			
+			temp = worldv2;
+			worldv2 = worldv3;
+			worldv3 = temp;
 				
 			if (screenv1.position.y > screenv2.position.y) {
 				temp = screenv2;
 				screenv2 = screenv1;
 				screenv1 = temp;
-			}
-		}
-		if (worldv1.position.y > worldv2.position.y) {
-			Vertex temp = worldv2;
-			worldv2 = worldv1;
-			worldv1 = temp;
-		}
-			
-		if (worldv2.position.y > worldv3.position.y) {
-			Vertex temp = worldv2;
-			worldv2 = worldv3;
-			worldv3 = temp;
 				
-			if (worldv1.position.y > worldv2.position.y) {
-				temp = worldv2;
-				worldv2 = worldv1;
-				worldv1 = temp;
+				temp = worldv1;
+				worldv1 = worldv2;
+				worldv2 = temp;
 			}
 		}
 		

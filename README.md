@@ -8,6 +8,8 @@ I will cover loading simple 3D model formats such as Wavefront OBJ, representing
 ## Supported features
 + OBJ file loading
 + Calculated face normals using verticies position and direction
++ per-pixel world coordinates
++ znear and zfar clipping
 + Camera FOV
 + Void colour
 + Back/Front face culling
