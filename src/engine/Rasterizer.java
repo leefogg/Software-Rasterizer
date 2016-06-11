@@ -2,6 +2,7 @@ package engine;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.awt.image.DataBufferByte;
 
 import engine.math.AABB;
 import engine.math.Color;
@@ -141,16 +142,26 @@ public class Rasterizer {
 	}
 	
 	public BufferedImage getDepthBuffer() {
-		BufferedImage depthbuffer = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
-		for (int y=0; y<height; y++) {
-			for (int x=0; x<width; x++) {
-				int depth = (int)map(depthBuffer[y*width + x], znear, zfar, 255, 0);
-				int rgb = (0xFF << 24) | (depth << 16) | (depth << 8) | depth;
-				depthbuffer.setRGB(x, y, rgb);
-			}
+		return getDepthBuffer(new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY));
+	}
+	public BufferedImage getDepthBuffer(BufferedImage buffer) {
+		byte[] outputpixels = ((DataBufferByte)buffer.getRaster().getDataBuffer()).getData(); // Pointer to buffer
+		
+		// Could use Map function, but inputs wont change so I cache them instead
+		float inversediff = 1f / (zfar - znear); // Thousands of pixels. Multiplication is faster than division.
+		int i=0;
+		for (float depth : depthBuffer) {
+			// Have to calculate the value as float for resolution, bytes are tiny
+			depth -= znear;
+			depth *= inversediff;
+			depth *= 255f;
+			depth += znear;
+			
+			outputpixels[i++] = (byte)depth;
 		}
 		
-		return depthbuffer;
+		
+		return buffer;
 	}
 	
 	//TODO: Render to texture
