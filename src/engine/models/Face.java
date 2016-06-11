@@ -11,4 +11,12 @@ public class Face {
 		vertex2 = b;
 		vertex3 = c;
 	}
+	
+	public static final Vector3 getCenter(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 out) {
+		out.set(v1);
+		out.add(v2);
+		out.add(v3);
+		out.divide(3);
+		return out;
+	}
 }

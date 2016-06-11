@@ -19,6 +19,12 @@ public class Vector3 {
 		y = ypos;
 		z = zpos;
 	}
+	
+	public final void set(Vector3 other) {
+		this.x = other.x;
+		this.y = other.y;
+		this.z = other.z;
+	}
 	public final void set(float x, float y, float z) {
 		this.x = x;
 		this.y = y;
@@ -48,7 +54,7 @@ public class Vector3 {
 		float x = p1.x - p2.x;
 		float y = p1.y - p2.y;
 		float z = p1.z - p2.z;
-		return Math.sqrt((x * x) + (y * y) + (z * z));
+		return Math.sqrt((x * x) + (y * y) + (z * z)); // Can't believe I can call this thousands of times per second
 	}
 	
 	public Vector3 crossProduct(Vector3 other) {

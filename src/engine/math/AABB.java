@@ -14,7 +14,7 @@ public class AABB {
 		set(position, size);
 	}
 	public AABB(int x, int y, int width, int height) {
-		set(new Point2D(x,y), new Point2D(width, height));
+		set(x,y, width,height);
 	}
 	public AABB(Point2D[] points) {
 		int 

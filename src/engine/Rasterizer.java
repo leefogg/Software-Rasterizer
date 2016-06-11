@@ -48,7 +48,7 @@ public class Rasterizer {
 	private Matrix 
 	projectionMatrix,
 	screenmatrix;
-	private Vector3 transformednormal = new Vector3(0,0,0);
+	private Vector3 facecenter = new Vector3(0); // TODO: Move to Fragment
 	private AABB boundingbox;
 	private Fragment currentFragment = new Fragment();
 	
@@ -168,14 +168,14 @@ public class Rasterizer {
 		for (Face face : mesh.faces) {
 			// Cull front and/or back face as per settings if GL_CULL_FACE is enabled
 			if (cullfaces) {
-				Matrix.transformNormal(face.normal, transformmatrix, transformednormal);
+				float dot = dotFaceToCam(mesh, face, cam);
 				switch (cullFaceMode) {
 					case GL_BACK: 
-						if (transformednormal.z > 0)
+						if (dot > 0)
 							continue;
 						break;
 					case GL_FRONT:
-						if (transformednormal.z < 0)
+						if (dot < 0)
 							continue;
 						break;
 				}
@@ -194,8 +194,18 @@ public class Rasterizer {
 		}
 	}
 	
-	// TODO: Create fragment class containing all vertcies, UVs, Texture, depth
-	// and resulting pixel color
+	private float dotFaceToCam(Mesh mesh, Face face, Camera cam) {
+		Face.getCenter(
+				mesh.transformedvertcies[face.vertex1].position,
+				mesh.transformedvertcies[face.vertex2].position,
+				mesh.transformedvertcies[face.vertex3].position, 
+				facecenter
+			);
+		Vector3 aimdirection = cam.getAimDirection(facecenter);
+	
+		return face.normal.dotProduct(aimdirection);
+	}
+
 	public void drawTriangle(Fragment f, Camera cam) {
 		if (f.isOnScreen(boundingbox)) {
 			Vector3 toppos 		= f.screentop.position;
@@ -263,7 +273,7 @@ public class Rasterizer {
 
 				int scanline = top;
 				for (; scanline < middle; scanline++) {
-					drawScanline(scanline, (int)screenstartx, (int)screenendx, worldstartx, worldendx, worldstarty, worldendy, worldstartz, worldendz, cam, texturestartu, textureendu, texturestartv, textureendv, f.texture);
+					drawScanline(scanline, (int)screenstartx, (int)screenendx, worldstartx, worldendx, worldstarty, worldendy, worldstartz, worldendz, texturestartu, textureendu, texturestartv, textureendv, cam, f.texture);
 
 					screenstartx 	+= screenleftxslope;
 					screenendx 		+= screenrightxslope;
@@ -292,7 +302,7 @@ public class Rasterizer {
 				worldendy 	= f.worldmiddle.position.y;
 				worldendz 	= f.worldmiddle.position.z;
 				for (; scanline < bottom; scanline++) {
-					drawScanline(scanline, (int)screenstartx, (int)screenendx, worldstartx, worldendx, worldstarty, worldendy, worldstartz, worldendz, cam, texturestartu, textureendu, texturestartv, textureendv, f.texture);
+					drawScanline(scanline, (int)screenstartx, (int)screenendx, worldstartx, worldendx, worldstarty, worldendy, worldstartz, worldendz, texturestartu, textureendu, texturestartv, textureendv, cam, f.texture);
 
 					screenstartx 	+= screenleftxslope;
 					screenendx 		+= screenrightxslope;
@@ -341,7 +351,7 @@ public class Rasterizer {
 
 				int scanline = top;
 				for (; scanline < middle; scanline++) {
-					drawScanline(scanline, (int)screenstartx, (int)screenendx, worldstartx, worldendx, worldstarty, worldendy, worldstartz, worldendz, cam, texturestartu, textureendu, texturestartv, textureendv, f.texture);
+					drawScanline(scanline, (int)screenstartx, (int)screenendx, worldstartx, worldendx, worldstarty, worldendy, worldstartz, worldendz, texturestartu, textureendu, texturestartv, textureendv, cam, f.texture);
 
 					screenstartx 	+= screenleftxslope;
 					screenendx 		+= screenrightxslope;
@@ -370,7 +380,7 @@ public class Rasterizer {
 				worldstarty 	= f.worldmiddle.position.y;
 				worldstartz 	= f.worldmiddle.position.z;
 				for (; scanline < bottom; scanline++) {
-					drawScanline(scanline, (int)screenstartx, (int)screenendx, worldstartx, worldendx, worldstarty, worldendy, worldstartz, worldendz, cam, texturestartu, textureendu, texturestartv, textureendv, f.texture);
+					drawScanline(scanline, (int)screenstartx, (int)screenendx, worldstartx, worldendx, worldstarty, worldendy, worldstartz, worldendz, texturestartu, textureendu, texturestartv, textureendv, cam, f.texture);
 
 					screenstartx 	+= screenleftxslope;
 					screenendx 		+= screenrightxslope;
@@ -390,7 +400,7 @@ public class Rasterizer {
 	}
 
 	private Vector3 worldpos = new Vector3(0,0,0);
-	private void drawScanline(int y, int screenstartx, int screenendx, float worldstartx, float worldendx, float worldstarty, float worldendy, float worldstartz, float worldendz, Camera camera, float texturestartu, float textureendu, float texturestartv, float textureendv, Texture tex) {
+	private void drawScanline(int y, int screenstartx, int screenendx, float worldstartx, float worldendx, float worldstarty, float worldendy, float worldstartz, float worldendz, float texturestartu, float textureendu, float texturestartv, float textureendv, Camera camera, Texture tex) {
 		// How much difference in attributes per pixel
 		float scanlinelength = screenendx - screenstartx;
 		float uslope = (textureendu - texturestartu)/ scanlinelength;
@@ -428,7 +438,7 @@ public class Rasterizer {
 			v += vslope;
 			
 			worldpos.set(worldx, worldy, worldz);
-			float distance = (float)camera.getDistanceFromCamera(worldpos);
+			float distance = (float)camera.getDistanceToCamera(worldpos);
 			setPixel(x,
 					 y,
 					 distance,

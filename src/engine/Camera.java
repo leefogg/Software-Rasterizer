@@ -37,10 +37,13 @@ public class Camera {
 	}
 	
 	public Vector3 getAimDirection() {
-		return target.Clone().subtract(position).normalize();
+		return target.Clone().subtract(position);
+	}
+	public Vector3 getAimDirection(Vector3 target) {
+		return target.subtract(position);
 	}
 	
-	public double getDistanceFromCamera(Vector3 point) {
+	public double getDistanceToCamera(Vector3 point) {
 		return Vector3.getDistance(point, position);
 	}
 	
