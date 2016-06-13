@@ -90,30 +90,30 @@ public class Matrix {
         float ez = -Vector3.dotProduct(zAxis, eye);
         return new Matrix(new float[]{xAxis.x, yAxis.x, zAxis.x, 0, xAxis.y, yAxis.y, zAxis.y, 0, xAxis.z, yAxis.z, zAxis.z, 0, ex, ey, ez, 1f});
     }
-    public static Matrix lookAtLH(Vector3 eye, Vector3 target, Vector3 up, Matrix old) {
+    public static Matrix lookAtLH(Vector3 eye, Vector3 target, Vector3 up, Matrix out) {
         Vector3 zAxis = Vector3.subtract(target, eye).normalize();
         Vector3 xAxis = Vector3.crossProduct(up, zAxis).normalize();
         Vector3 yAxis = Vector3.crossProduct(zAxis, xAxis).normalize();
         float ex = -Vector3.dotProduct(xAxis, eye);
         float ey = -Vector3.dotProduct(yAxis, eye);
         float ez = -Vector3.dotProduct(zAxis, eye);
-        old.m[0] = xAxis.x;
-        old.m[1] = yAxis.x;
-        old.m[2] = zAxis.x;
-        old.m[3] = 0;
-        old.m[4] = xAxis.y;
-        old.m[5] = yAxis.y;
-        old.m[6] = zAxis.y;
-        old.m[7] = 0;
-        old.m[8] = xAxis.z;
-        old.m[9] = yAxis.z;
-        old.m[10] = zAxis.z;
-        old.m[11] = 0;
-        old.m[12] = ex;
-        old.m[13] = ey;
-        old.m[14] = ez;
-        old.m[15] = 1f;
-        return old;
+        out.m[0] = xAxis.x;
+        out.m[1] = yAxis.x;
+        out.m[2] = zAxis.x;
+        out.m[3] = 0;
+        out.m[4] = xAxis.y;
+        out.m[5] = yAxis.y;
+        out.m[6] = zAxis.y;
+        out.m[7] = 0;
+        out.m[8] = xAxis.z;
+        out.m[9] = yAxis.z;
+        out.m[10] = zAxis.z;
+        out.m[11] = 0;
+        out.m[12] = ex;
+        out.m[13] = ey;
+        out.m[14] = ez;
+        out.m[15] = 1f;
+        return out;
     }
     
     // TODO: Make reuse alias
@@ -131,20 +131,21 @@ public class Matrix {
         return matrix;
     }
     
-    // TODO: Make reuse alias
     public static Matrix PerspectiveFovLH(float fov, float aspect, float znear, float zfar) {
-        Matrix matrix = new Matrix();
+    	return PerspectiveFovLH(fov, aspect, znear, zfar, new Matrix());
+    }
+    public static Matrix PerspectiveFovLH(float fov, float aspect, float znear, float zfar, Matrix out) {
         float tan = (float)(1f / (Math.tan(fov * 0.5f)));
-        matrix.m[0] = tan / aspect;
-        matrix.m[1] = matrix.m[2] = matrix.m[3] = 0f;
-        matrix.m[5] = tan;
-        matrix.m[4] = matrix.m[6] = matrix.m[7] = 0f;
-        matrix.m[8] = matrix.m[9] = 0f;
-        matrix.m[10] = -zfar / (znear - zfar);
-        matrix.m[11] = 1f;
-        matrix.m[12] = matrix.m[13] = matrix.m[15] = 0f;
-        matrix.m[14] = (znear * zfar) / (znear - zfar);
-        return matrix;
+        out.m[0] = tan / aspect;
+        out.m[1] = out.m[2] = out.m[3] = 0f;
+        out.m[5] = tan;
+        out.m[4] = out.m[6] = out.m[7] = 0f;
+        out.m[8] = out.m[9] = 0f;
+        out.m[10] = -zfar / (znear - zfar);
+        out.m[11] = 1f;
+        out.m[12] = out.m[13] = out.m[15] = 0f;
+        out.m[14] = (znear * zfar) / (znear - zfar);
+        return out;
     }
     
     public static Matrix transpose(Matrix matrix) {
@@ -281,7 +282,9 @@ public class Matrix {
 	}
 	
 	public static Matrix multiply(Matrix left, Matrix right) {
-		Matrix out = new Matrix();
+		return multiply(left, right, new Matrix());
+	}
+	public static Matrix multiply(Matrix left, Matrix right, Matrix out) {
 		out.m[0] = left.m[0] * right.m[0] + left.m[1] * right.m[4] + left.m[2] * right.m[8] + left.m[3] * right.m[12];
 		out.m[1] = left.m[0] * right.m[1] + left.m[1] * right.m[5] + left.m[2] * right.m[9] + left.m[3] * right.m[13];
 		out.m[2] = left.m[0] * right.m[2] + left.m[1] * right.m[6] + left.m[2] * right.m[10] + left.m[3] * right.m[14];

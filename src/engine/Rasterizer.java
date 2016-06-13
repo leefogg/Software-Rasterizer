@@ -44,9 +44,13 @@ public class Rasterizer {
 	
 	// Data required for rasterization process
 	private Matrix
-	screenmatrix;
-	private Vector3 facecenter = new Vector3(0); 
-	private AABB boundingbox;
+	screenmatrix,
+	worldviewMatrix = new Matrix(),
+	transformMatrix = new Matrix();
+	private Vector3 
+	facecenter = new Vector3(0,0,0), // The position of the center of the face being rendered
+	worldpos = new Vector3(0,0,0); // The world position of the current pixel being shaded
+	private AABB boundingbox; // Used to clip triangles
 	private Fragment currentFragment = new Fragment();
 	
 	// Settings
@@ -154,24 +158,40 @@ public class Rasterizer {
 			depth *= 255f;
 			depth += znear;
 			
-			outputpixels[i++] = (byte)depth;
+			outputpixels[i++] = (byte)(255-depth);
 		}
 		
-		
 		return buffer;
+	}
+	
+	private void resise(int width, int height) {
+		int numpixels = width * height;
+		Color[] newpixels = new Color[numpixels];
+		// Preserve memory thrashing as much as possible
+		int pixel = 0;
+		// Copy existing pixels into new array
+		for (; pixel<Math.min(numpixels, pixels.length); pixel++) 
+			newpixels[pixel] = pixels[pixel];
+		// If there's still more pixels, have to create new ones on the end
+		for (; pixel<numpixels; pixel++)
+			newpixels[pixel] = new Color(clearColor);
+		
+		pixels = newpixels;
+		framebuffer = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+		depthBuffer = new float[numpixels]; // No point copying primitives over
 	}
 	
 	//TODO: Render to texture
 	public void render(Mesh mesh, Camera cam) {
 		if (cullfaces && cullFaceMode == GL_FRONT_AND_BACK) return;
 		
-		Matrix worldview = Matrix.multiply(mesh.worldmatrix, cam.viewMatrix);
-		Matrix transformmatrix = Matrix.multiply(worldview, cam.projectionMatrix);
+		Matrix.multiply(mesh.worldmatrix, cam.viewMatrix, worldviewMatrix);
+		Matrix.multiply(worldviewMatrix, cam.projectionMatrix, transformMatrix);
 		
 		// Scale to screen size and move to middle
-		transformmatrix.multiply(screenmatrix);
+		transformMatrix.multiply(screenmatrix);
 		
-		mesh.projectVertcies(transformmatrix);
+		mesh.projectVertcies(transformMatrix);
 		
 		for (Face face : mesh.faces) {
 			// Cull front and/or back face as per settings if GL_CULL_FACE is enabled
@@ -407,7 +427,6 @@ public class Rasterizer {
 		}
 	}
 
-	private Vector3 worldpos = new Vector3(0,0,0);
 	private void drawScanline(int y, int screenstartx, int screenendx, float worldstartx, float worldendx, float worldstarty, float worldendy, float worldstartz, float worldendz, float texturestartu, float textureendu, float texturestartv, float textureendv, Camera camera, Texture tex) {
 		// How much difference in attributes per pixel
 		float scanlinelength = screenendx - screenstartx;
@@ -428,11 +447,11 @@ public class Rasterizer {
 			screenstartx = 0;
 			
 			// Move start UV and depth position to where they would be now startx has moved
-			u += uslope * difference;
-			v += vslope * difference;
-			worldx += xslope * difference;
-			worldy += yslope * difference;
-			worldz += zslope * difference;
+			u 		+= uslope * difference;
+			v 		+= vslope * difference;
+			worldx 	+= xslope * difference;
+			worldy 	+= yslope * difference;
+			worldz 	+= zslope * difference;
 		}
 		// End early if goes off screen
 		if (screenendx > width)
@@ -444,48 +463,52 @@ public class Rasterizer {
 		zfar = camera.getZFar();
 		//TODO: Check if any of the scanline is in depth range
 		for (int x = screenstartx; x < screenendx; x++) {
-			worldx += xslope;
-			worldy += yslope;
-			worldz += zslope;
-			u += uslope;
-			v += vslope;
+			worldx 	+= xslope;
+			worldy 	+= yslope;
+			worldz 	+= zslope;
+			u 		+= uslope;
+			v 		+= vslope;
 			
 			worldpos.set(worldx, worldy, worldz);
 			float distance = (float)camera.getDistanceToCamera(worldpos);
 			
-			setPixel(x,
-					 y,
+			int pixelindex = testPixel(x, y, distance, znear, zfar);
+			if (pixelindex == -1) 
+				continue;
+			
+			Color pixelcolor = tex.map(u, v);
+			//TODO: Shade pixel
+			
+			setPixel(pixelindex,
 					 distance,
-					 znear,
-					 zfar,
-					 tex.map(u, v)
+					 pixelcolor
 				);
 		}
 	}
 	
-	private void setPixel(int x, int y, float z, float znear, float zfar, Color color) {
+	private int testPixel(int x, int y, float z, float znear, float zfar) {
+		if (z > zfar)
+			return -1;
+		if (z < znear)
+			return -1;
+		
+		if (x > width)
+			return -1;
+		if (y > height)
+			return -1;
+		
 		int pixelindex = y*width + x;
 		
-		/*
-		if (pixelindex >= pixels.length) {
-			System.err.println("Tried to draw pixel X: "+ x + ", Y: "+ y);
-			return;
-		}
-		if (pixelindex < 0) {
-			System.err.println("Tried to draw pixel X: "+ x + ", Y: "+ y);
-			return;
-		}
-		 */
-		if (z > zfar || z < znear)
-			return;
-		
 		if (depthBuffer[pixelindex] < z) 
-			return;
+			return -1;
 		
-		// TOOD: Fix depth buffer values
+		return pixelindex;
+	}
+	
+	private void setPixel(int pixelindex, float z, Color color) {
 		depthBuffer[pixelindex] = z;
 		
-
+		
 		switch(blendMode) {
 			case GL_FUNC_SET:
 				pixels[pixelindex].set(color);

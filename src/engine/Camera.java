@@ -15,8 +15,8 @@ public class Camera {
 	znear, zfar;
 	
 	public Matrix 
-	viewMatrix,
-	projectionMatrix;
+	viewMatrix = new Matrix(),
+	projectionMatrix = new Matrix();
 	
 	public Camera(float fov, int width, int height, float znear, float zfar) {
 		set(fov, width, height, znear, zfar);
@@ -115,10 +115,10 @@ public class Camera {
 	
 	
 	private void updateViewMatrix() {
-		viewMatrix = Matrix.lookAtLH(position, target, Vector3.up);
+		Matrix.lookAtLH(position, target, Vector3.up, viewMatrix);
 	}
 	private void updateProjectionMatrix() {
-		projectionMatrix = Matrix.PerspectiveFovLH(fov, (float)width / (float)height, znear, zfar);
+		 Matrix.PerspectiveFovLH(fov, (float)width / (float)height, znear, zfar, projectionMatrix);
 	}
 	
 	public Camera Clone() {
