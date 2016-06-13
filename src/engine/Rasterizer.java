@@ -1,8 +1,11 @@
 package engine;
 
+import static engine.math.CommonMath.clamp;
+import static engine.math.CommonMath.isInRange;
+
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferInt;
 import java.awt.image.DataBufferByte;
+import java.awt.image.DataBufferInt;
 
 import engine.math.AABB;
 import engine.math.Color;
@@ -11,10 +14,7 @@ import engine.math.Vector3;
 import engine.models.Face;
 import engine.models.Mesh;
 import engine.models.Texture;
-import engine.models.Vertex;
 import engine.models.Materials.ImageTexture;
-
-import static engine.math.CommonMath.*;
 
 public class Rasterizer {
 	// Global enums like OpenGL. Import statically for convenience
@@ -43,26 +43,20 @@ public class Rasterizer {
 	private Color clearColor = Color.alpha;
 	
 	// Data required for rasterization process
-	private float 
-	znear,
-	zfar;
-	private Matrix 
-	projectionMatrix,
+	private Matrix
 	screenmatrix;
-	private Vector3 facecenter = new Vector3(0); // TODO: Move to Fragment
+	private Vector3 facecenter = new Vector3(0); 
 	private AABB boundingbox;
 	private Fragment currentFragment = new Fragment();
 	
 	// Settings
 	private boolean cullfaces = false;
 	private int cullFaceMode = GL_BACK;
-	private int blendMode = GL_FUNC_SET; 
+	private int blendMode = GL_FUNC_SET;
 	
 	public Rasterizer(float fov, int width, int height, float znear, float zfar) {
 		this.width = width;
 		this.height = height;
-		this.znear = znear;
-		this.zfar = zfar;
 		
 		boundingbox = new AABB(0,0, width,height);
 		
@@ -70,8 +64,7 @@ public class Rasterizer {
 		
 		pixels = new Color[width * height];
 		depthBuffer = new float[pixels.length];
-			
-		projectionMatrix = Matrix.PerspectiveFovLH(fov, (float)width / (float)height, znear, zfar);
+		
 		screenmatrix = Matrix.scaling(-width, -height, 1).multiply(Matrix.translation(width / 2, height / 2, 1));
 		
 		for (int i=0; i<pixels.length; i++)
@@ -141,12 +134,16 @@ public class Rasterizer {
 		return framebuffer; 
 	}
 	
-	public BufferedImage getDepthBuffer() {
-		return getDepthBuffer(new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY));
+	public BufferedImage getDepthBuffer(Camera camera) {
+		return getDepthBuffer(new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY), camera);
 	}
-	public BufferedImage getDepthBuffer(BufferedImage buffer) {
+	public BufferedImage getDepthBuffer(BufferedImage buffer, Camera camera) {
 		byte[] outputpixels = ((DataBufferByte)buffer.getRaster().getDataBuffer()).getData(); // Pointer to buffer
 		
+		
+		float
+		znear = camera.getZNear(),
+		zfar = camera.getZFar();
 		// Could use Map function, but inputs wont change so I cache them instead
 		float inversediff = 1f / (zfar - znear); // Thousands of pixels. Multiplication is faster than division.
 		int i=0;
@@ -169,7 +166,7 @@ public class Rasterizer {
 		if (cullfaces && cullFaceMode == GL_FRONT_AND_BACK) return;
 		
 		Matrix worldview = Matrix.multiply(mesh.worldmatrix, cam.viewMatrix);
-		Matrix transformmatrix = Matrix.multiply(worldview, projectionMatrix);
+		Matrix transformmatrix = Matrix.multiply(worldview, cam.projectionMatrix);
 		
 		// Scale to screen size and move to middle
 		transformmatrix.multiply(screenmatrix);
@@ -441,6 +438,11 @@ public class Rasterizer {
 		if (screenendx > width)
 			screenendx = width;
 		
+		
+		float 
+		znear = camera.getZNear(),
+		zfar = camera.getZFar();
+		//TODO: Check if any of the scanline is in depth range
 		for (int x = screenstartx; x < screenendx; x++) {
 			worldx += xslope;
 			worldy += yslope;
@@ -450,15 +452,18 @@ public class Rasterizer {
 			
 			worldpos.set(worldx, worldy, worldz);
 			float distance = (float)camera.getDistanceToCamera(worldpos);
+			
 			setPixel(x,
 					 y,
 					 distance,
+					 znear,
+					 zfar,
 					 tex.map(u, v)
 				);
 		}
 	}
 	
-	private void setPixel(int x, int y, float z, Color color) {
+	private void setPixel(int x, int y, float z, float znear, float zfar, Color color) {
 		int pixelindex = y*width + x;
 		
 		/*

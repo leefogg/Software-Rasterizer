@@ -27,7 +27,7 @@ public class Viewport extends Canvas implements MouseWheelListener {
 	private BufferStrategy buffer;
 
 	private Rasterizer renderer;
-	private Camera camera = new Camera(new Vector3(2,3,5), new Vector3(0,1,0));
+	private Camera camera = new Camera(0.9f, 320, 240, 1f, 10f);
 	
 	Mesh glados, floor;
 
@@ -54,6 +54,10 @@ public class Viewport extends Canvas implements MouseWheelListener {
 		renderer.enable(GL_CULL_FACE);
 		renderer.cullFace(GL_BACK);
 		renderer.blendEquation(GL_FUNC_SET);
+		
+		camera.setPosition(0, 3, 3);
+		camera.setTarget(0, 1, 0);
+		
 		try {
 			String localdir =  System.getProperty("user.dir").replaceAll("\\\\", "/");
 			floor = OBJLoader.load(localdir + "/res/floor.obj");

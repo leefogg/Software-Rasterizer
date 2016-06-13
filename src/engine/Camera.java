@@ -5,36 +5,102 @@ import engine.math.Matrix;
 import engine.math.Vector3;
 
 public class Camera {
-	private Vector3 position, target;
+	private Vector3 
+	position = new Vector3(0,0,0),
+	target = new Vector3(0,0,1);
 	
-	public Matrix viewMatrix;
+	private int width, height;
+	private float
+	fov,
+	znear, zfar;
 	
-	public Camera(Vector3 position, Vector3 target) {
-		this.position = position;
-		this.target = target;
+	public Matrix 
+	viewMatrix,
+	projectionMatrix;
+	
+	public Camera(float fov, int width, int height, float znear, float zfar) {
+		set(fov, width, height, znear, zfar);
+	}
+	
+	public void set(float fov, int width, int height, float znear, float zfar) {		
+		this.fov = fov;
+		this.width = width;
+		this.height = height;
+		this.znear = znear;
+		this.zfar = zfar;
 		
-		viewMatrix = Matrix.lookAtLH(position, target, Vector3.up);
+		updateViewMatrix();
+		updateProjectionMatrix();
 	}
 	
 	public Vector3 getPosition() {
 		return position.Clone();
 	}
-	
+	public void setPosition(Vector3 pos) {
+		setPosition(pos.x, pos.y, pos.z);
+	}
 	public void setPosition(float x, float y, float z) {
 		position.x = x;
 		position.y = y;
 		position.z = z;
 		updateViewMatrix();
 	}
-	public void setPosition(Vector3 pos) {
-		position = pos;
+	
+	public Vector3 getTarget() {
+		return target.Clone();
+	}
+	public void setTarget(Vector3 pos) {
+		setTarget(pos.x, pos.y, pos.z);
+	}
+	public void setTarget(float x, float y, float z) {
+		target.x = x;
+		target.y = y;
+		target.z = z;
 		updateViewMatrix();
 	}
 	
-	public void setTarget(Vector3 pos) {
-		target = pos;
-		updateViewMatrix();
+	public int getWidth() {
+		return width;
 	}
+	public void setWidth(int width) {
+		this.width = width;
+		updateProjectionMatrix();
+	}
+
+	public int getHeight() {
+		return height;
+	}
+	public void setHeight(int height) {
+		this.height = height;
+		updateProjectionMatrix();
+	}
+
+	
+	public float getFov() {
+		return fov;
+	}
+	public void setFov(float fov) {
+		this.fov = fov;
+		updateProjectionMatrix();
+	}
+
+
+	public float getZNear() {
+		return znear;
+	}
+	public void setZNear(float znear) {
+		this.znear = znear;
+		updateProjectionMatrix();
+	}
+
+	public float getZFar() {
+		return zfar;
+	}
+	public void setZFar(float zfar) {
+		this.zfar = zfar;
+		updateProjectionMatrix();
+	}
+
 	
 	public Vector3 getAimDirection() {
 		return target.Clone().subtract(position);
@@ -47,11 +113,15 @@ public class Camera {
 		return Vector3.getDistance(point, position);
 	}
 	
+	
 	private void updateViewMatrix() {
-		Matrix.lookAtLH(position, target, Vector3.up, viewMatrix);
+		viewMatrix = Matrix.lookAtLH(position, target, Vector3.up);
+	}
+	private void updateProjectionMatrix() {
+		projectionMatrix = Matrix.PerspectiveFovLH(fov, (float)width / (float)height, znear, zfar);
 	}
 	
 	public Camera Clone() {
-		return new Camera(position, target);
+		return new Camera(fov, width, height, znear, zfar);
 	}
 }
