@@ -58,7 +58,7 @@ public class Rasterizer {
 	private int cullFaceMode = GL_BACK;
 	private int blendMode = GL_FUNC_SET;
 	
-	public Rasterizer(float fov, int width, int height, float znear, float zfar) {
+	public Rasterizer(int width, int height) {
 		this.width = width;
 		this.height = height;
 		

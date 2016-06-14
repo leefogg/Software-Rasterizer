@@ -49,7 +49,7 @@ public class Viewport extends Canvas implements MouseWheelListener {
 			e.printStackTrace();
 		}
 
-		renderer = new Rasterizer(0.9f, 320, 240, 1f, 10f);
+		renderer = new Rasterizer(320, 240);
 		renderer.setClearColor(0xFF000000);
 		renderer.enable(GL_CULL_FACE);
 		renderer.cullFace(GL_BACK);
