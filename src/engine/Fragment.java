@@ -4,6 +4,7 @@ import engine.math.AABB;
 import engine.math.Point2D;
 import engine.math.Vector3;
 import engine.models.Texture;
+import engine.models.UVSet;
 import engine.models.Vertex;
 
 public final class Fragment {
@@ -14,46 +15,62 @@ public final class Fragment {
 	screentop,
 	screenmiddle,
 	screenbottom;
+	public UVSet
+	topVertexUV,
+	middleVertexUV,
+	bottomVertexUV;
 	public Texture texture;
 	private AABB boundingbox = new AABB();
 	
 	public Fragment() {}
 	
-	public final void set(Vertex worldv1, Vertex worldv2, Vertex worldv3, Vertex screenv1, Vertex screenv2, Vertex screenv3, Texture texture) {
+	public final void set(Vertex worldv1, Vertex worldv2, Vertex worldv3, Vertex screenv1, Vertex screenv2, Vertex screenv3, UVSet uv1, UVSet uv2, UVSet uv3, Texture texture) {
 		this.texture = texture;
 		
 		// Sort verts by height, v1 at top
+		Vertex tempvertex;
+		UVSet tempuv;
 		if (screenv1.position.y > screenv2.position.y) {
-			Vertex temp = screenv2;
+			tempvertex = screenv2;
 			screenv2 = screenv1;
-			screenv1 = temp;
+			screenv1 = tempvertex;
 			
-			temp = worldv1;
+			tempuv = uv2;
+			uv2 = uv1;
+			uv1 = tempuv;
+			
+			tempvertex = worldv1;
 			worldv1 = worldv2;
-			worldv2 = temp;
+			worldv2 = tempvertex;
 		}
 			
 		if (screenv2.position.y > screenv3.position.y) {
-			Vertex temp = screenv2;
+			tempvertex = screenv2;
 			screenv2 = screenv3;
-			screenv3 = temp;
+			screenv3 = tempvertex;
 			
-			temp = worldv2;
+			tempuv = uv2;
+			uv2 = uv3;
+			uv3 = tempuv;
+			
+			tempvertex = worldv2;
 			worldv2 = worldv3;
-			worldv3 = temp;
+			worldv3 = tempvertex;
 				
 			if (screenv1.position.y > screenv2.position.y) {
-				temp = screenv2;
+				tempvertex = screenv2;
 				screenv2 = screenv1;
-				screenv1 = temp;
+				screenv1 = tempvertex;
 				
-				temp = worldv1;
+				tempuv = uv2;
+				uv2 = uv1;
+				uv1 = tempuv;
+				
+				tempvertex = worldv1;
 				worldv1 = worldv2;
-				worldv2 = temp;
+				worldv2 = tempvertex;
 			}
 		}
-		
-		calculateboundingBox(screenv1.position, screenv2.position, screenv3.position);
 		
 		this.worldtop 		= worldv1;
 		this.worldmiddle	= worldv2;
@@ -61,14 +78,22 @@ public final class Fragment {
 		this.screentop 		= screenv1;
 		this.screenmiddle	= screenv2;
 		this.screenbottom 	= screenv3;
+		this.topVertexUV = uv1;
+		this.middleVertexUV = uv2;
+		this.bottomVertexUV = uv3;
 	}
 	
-	private void calculateboundingBox(Vector3 v1, Vector3 v2, Vector3 v3) {
+	public void calculateboundingBox() {
 		float 
 		minx = Float.MAX_VALUE,
 		maxx = Float.MIN_VALUE,
 		miny = Float.MAX_VALUE,
 		maxy = Float.MIN_VALUE;
+		
+		Vector3 
+		v1 = screentop.position,
+		v2 = screenmiddle.position,
+		v3 = screenbottom.position;
 		
 		if (v1.x < minx) minx = v1.x;
 		if (v1.x > maxx) maxx = v1.x; 
@@ -86,6 +111,14 @@ public final class Fragment {
 		if (v3.y > maxy) maxy = v3.y;
 		
 		boundingbox.set((int)minx, (int)miny, (int)(maxx-minx), (int)(maxy-miny));
+	}
+	
+	public boolean anyVertexOnScreen(AABB screen) {
+		if (screen.isPointInside(screentop.position)) 	 return false;
+		if (screen.isPointInside(screenmiddle.position)) return false;
+		if (screen.isPointInside(screenbottom.position)) return false;
+		
+		return true;
 	}
 	
 	public boolean isOnScreen(AABB screen) {
@@ -106,5 +139,19 @@ public final class Fragment {
 		float toptomiddlexslope = (screenmiddle.position.x - screentop.position.x) / (screenmiddle.position.y - screentop.position.y);
 		float toptobottomxslope = (screenbottom.position.x - screentop.position.x) / (screenbottom.position.y - screentop.position.y);
 		return toptomiddlexslope > toptobottomxslope;
+	}
+	
+	public Fragment Clone() {
+		Fragment f = new Fragment();
+		f.boundingbox = boundingbox;
+		f.texture = texture;
+		f.screentop = screentop;
+		f.screenmiddle = screenmiddle;
+		f.screenbottom = screenbottom;
+		f.worldtop = worldtop;
+		f.worldmiddle = worldmiddle;
+		f.worldbottom = worldbottom;
+		
+		return f;
 	}
 }
