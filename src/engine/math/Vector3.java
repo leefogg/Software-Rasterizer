@@ -74,11 +74,11 @@ public class Vector3 {
 				);
 	}
 	
-	public static float dotProduct(Vector3 vec1, Vector3 vec2) {
-		return vec1.x * vec2.x + vec1.y * vec2.y + vec1.z * vec2.z;
-	}
 	public float dotProduct(Vector3 other) {
 		return dotProduct(this, other);
+	}
+	public static float dotProduct(Vector3 vec1, Vector3 vec2) {
+		return vec1.x * vec2.x + vec1.y * vec2.y + vec1.z * vec2.z;
 	}
 	
 	public Vector3 scale(float scale) {

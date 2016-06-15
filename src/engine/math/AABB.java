@@ -107,6 +107,15 @@ public class AABB {
 		return true;
 	}
 	
+	public boolean isPointInside(Vector3 point) {
+		if (point.x < position.x) 			return false;
+		if (point.x > position.x+size.x) 	return false;
+		if (point.y < position.y) 			return false;
+		if (point.y > position.y+size.y) 	return false;
+		
+		return true;
+	}
+	
 	public AABB union(AABB box) {
 		if (!intersects(box)) return null;
 		
