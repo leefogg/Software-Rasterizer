@@ -8,7 +8,7 @@ import engine.models.UVSet;
 import engine.models.Vertex;
 
 public final class Fragment {
-	public Vertex
+	public Vector3
 	worldtop,
 	worldmiddle,
 	worldbottom,
@@ -24,13 +24,13 @@ public final class Fragment {
 	
 	public Fragment() {}
 	
-	public final void set(Vertex worldv1, Vertex worldv2, Vertex worldv3, Vertex screenv1, Vertex screenv2, Vertex screenv3, UVSet uv1, UVSet uv2, UVSet uv3, Texture texture) {
+	public final void set(Vector3 worldv1, Vector3 worldv2, Vector3 worldv3, Vector3 screenv1, Vector3 screenv2, Vector3 screenv3, UVSet uv1, UVSet uv2, UVSet uv3, Texture texture) {
 		this.texture = texture;
 		
 		// Sort verts by height, v1 at top
-		Vertex tempvertex;
+		Vector3 tempvertex;
 		UVSet tempuv;
-		if (screenv1.position.y > screenv2.position.y) {
+		if (screenv1.y > screenv2.y) {
 			tempvertex = screenv2;
 			screenv2 = screenv1;
 			screenv1 = tempvertex;
@@ -44,7 +44,7 @@ public final class Fragment {
 			worldv2 = tempvertex;
 		}
 			
-		if (screenv2.position.y > screenv3.position.y) {
+		if (screenv2.y > screenv3.y) {
 			tempvertex = screenv2;
 			screenv2 = screenv3;
 			screenv3 = tempvertex;
@@ -57,7 +57,7 @@ public final class Fragment {
 			worldv2 = worldv3;
 			worldv3 = tempvertex;
 				
-			if (screenv1.position.y > screenv2.position.y) {
+			if (screenv1.y > screenv2.y) {
 				tempvertex = screenv2;
 				screenv2 = screenv1;
 				screenv1 = tempvertex;
@@ -91,9 +91,9 @@ public final class Fragment {
 		maxy = Float.MIN_VALUE;
 		
 		Vector3 
-		v1 = screentop.position,
-		v2 = screenmiddle.position,
-		v3 = screenbottom.position;
+		v1 = screentop,
+		v2 = screenmiddle,
+		v3 = screenbottom;
 		
 		if (v1.x < minx) minx = v1.x;
 		if (v1.x > maxx) maxx = v1.x; 
@@ -114,9 +114,9 @@ public final class Fragment {
 	}
 	
 	public boolean anyVertexOnScreen(AABB screen) {
-		if (screen.isPointInside(screentop.position)) 	 return false;
-		if (screen.isPointInside(screenmiddle.position)) return false;
-		if (screen.isPointInside(screenbottom.position)) return false;
+		if (screen.isPointInside(screentop)) 	 return false;
+		if (screen.isPointInside(screenmiddle)) return false;
+		if (screen.isPointInside(screenbottom)) return false;
 		
 		return true;
 	}
@@ -128,16 +128,16 @@ public final class Fragment {
 	public boolean middleOnLeft() {
 		// Calculate slopes. How many pixels to move across to move down by 1 pixel
 		// TODO: Is there a faster way to determine if the middle vertex is on the right?
-		float toptomiddlexslope = (screenmiddle.position.x - screentop.position.x) / (screenmiddle.position.y - screentop.position.y);
-		float toptobottomxslope = (screenbottom.position.x - screentop.position.x) / (screenbottom.position.y - screentop.position.y);
+		float toptomiddlexslope = (screenmiddle.x - screentop.x) / (screenmiddle.y - screentop.y);
+		float toptobottomxslope = (screenbottom.x - screentop.x) / (screenbottom.y - screentop.y);
 		return toptomiddlexslope < toptobottomxslope;
 	}
 	
 	public boolean middleOnRight() {
 		// Calculate slopes. How many pixels to move across to move down by 1 pixel
 		// TODO: Is there a faster way to determine if the middle vertex is on the right?
-		float toptomiddlexslope = (screenmiddle.position.x - screentop.position.x) / (screenmiddle.position.y - screentop.position.y);
-		float toptobottomxslope = (screenbottom.position.x - screentop.position.x) / (screenbottom.position.y - screentop.position.y);
+		float toptomiddlexslope = (screenmiddle.x - screentop.x) / (screenmiddle.y - screentop.y);
+		float toptobottomxslope = (screenbottom.x - screentop.x) / (screenbottom.y - screentop.y);
 		return toptomiddlexslope > toptobottomxslope;
 	}
 	

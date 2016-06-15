@@ -12,9 +12,10 @@ import engine.models.Materials.ImageTexture;
 
 public class Mesh {
 	public Vertex[] 
-			vertcies,
-			transformedvertcies, //TODO: Change to Vector3[]
-			projectedvertcies; //TODO: Change to Vector3[]
+			vertcies;
+	public Vector3[]
+			transformedvertcies,
+			projectedvertcies; 
 	public Face[] faces;
 	private Vector3 
 	position = Vector3.zero.Clone(),
@@ -26,12 +27,12 @@ public class Mesh {
 	public Mesh(Vertex[] verticies, Face[] faces, Texture tex) {
 		this.vertcies = verticies;
 		
-		transformedvertcies = new Vertex[vertcies.length];
-		projectedvertcies = new Vertex[vertcies.length];
+		transformedvertcies = new Vector3[vertcies.length];
+		projectedvertcies = new Vector3[vertcies.length];
 		for (int i=0; i<vertcies.length; i++) {
 			Vertex vertex = vertcies[i];
-			projectedvertcies[i] 	= new Vertex(vertex.position.Clone());
-			transformedvertcies[i] 	= new Vertex(vertex.position.Clone());
+			projectedvertcies[i] 	= vertex.position.Clone();
+			transformedvertcies[i] 	= vertex.position.Clone();
 		}
 			
 		this.faces = faces;
@@ -42,12 +43,12 @@ public class Mesh {
 	
 	public void projectVertcies(Matrix projectionmatrix) {
 		for (int i=0; i<vertcies.length; i++) {
-			Matrix.transformCoordinates(vertcies[i].position, projectionmatrix, projectedvertcies[i].position);
+			Matrix.transformCoordinates(vertcies[i].position, projectionmatrix, projectedvertcies[i]);
 		}
 	}
 	private void transformVertcies(Matrix transformmatrix) {
 		for (int i=0; i<vertcies.length; i++) {
-			Matrix.transformCoordinates(vertcies[i].position, transformmatrix, transformedvertcies[i].position);			
+			Matrix.transformCoordinates(vertcies[i].position, transformmatrix, transformedvertcies[i]);			
 		}
 	}
 	

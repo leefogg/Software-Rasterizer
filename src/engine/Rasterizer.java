@@ -212,6 +212,7 @@ public class Rasterizer {
 			}
 			
 			// More complex culling tests
+			
 			currentFragment.set(
 					mesh.transformedvertcies[face.vertex1],
 					mesh.transformedvertcies[face.vertex2],
@@ -223,11 +224,9 @@ public class Rasterizer {
 					face.uv2,
 					face.uv3,
 					mesh.texture
-				);
-			
+					);
 			currentFragment.calculateboundingBox();
 			if (!currentFragment.isOnScreen(boundingbox)) continue;
-			//if (currentFragment.anyVertexOnScreen(boundingbox)) continue;
 			
 			// Okay, draw it
 			drawTriangle(currentFragment, camera);
@@ -236,15 +235,15 @@ public class Rasterizer {
 	
 	private float dotFaceCenterToCam(Mesh mesh, Face face, Camera camera) {
 		Face.getCenter(
-				mesh.transformedvertcies[face.vertex1].position,
-				mesh.transformedvertcies[face.vertex2].position,
-				mesh.transformedvertcies[face.vertex3].position, 
+				mesh.transformedvertcies[face.vertex1],
+				mesh.transformedvertcies[face.vertex2],
+				mesh.transformedvertcies[face.vertex3], 
 				facecenter
 			);
 		Face.getNormal(
-				mesh.transformedvertcies[face.vertex1].position,
-				mesh.transformedvertcies[face.vertex2].position,
-				mesh.transformedvertcies[face.vertex3].position, 
+				mesh.transformedvertcies[face.vertex1],
+				mesh.transformedvertcies[face.vertex2],
+				mesh.transformedvertcies[face.vertex3], 
 				facenormal
 			);
 		Vector3 aimdirection = camera.getAimDirection(facecenter).normalize();
@@ -253,15 +252,15 @@ public class Rasterizer {
 	}
 	private float dotCameraAimToFaceNormal(Mesh mesh, Face face, Camera camera) {
 		Face.getCenter(
-				mesh.transformedvertcies[face.vertex1].position,
-				mesh.transformedvertcies[face.vertex2].position,
-				mesh.transformedvertcies[face.vertex3].position, 
+				mesh.transformedvertcies[face.vertex1],
+				mesh.transformedvertcies[face.vertex2],
+				mesh.transformedvertcies[face.vertex3], 
 				facecenter
 			);
 		Face.getNormal(
-				mesh.transformedvertcies[face.vertex1].position,
-				mesh.transformedvertcies[face.vertex2].position,
-				mesh.transformedvertcies[face.vertex3].position, 
+				mesh.transformedvertcies[face.vertex1],
+				mesh.transformedvertcies[face.vertex2],
+				mesh.transformedvertcies[face.vertex3], 
 				facenormal
 			);
 		Vector3 aimdirection = camera.getAimDirection().normalize();
@@ -270,9 +269,9 @@ public class Rasterizer {
 	}
 
 	public void drawTriangle(Fragment f, Camera cam) {
-			Vector3 toppos 		= f.screentop.position;
-			Vector3 middlepos 	= f.screenmiddle.position;
-			Vector3 bottompos 	= f.screenbottom.position;
+			Vector3 toppos 		= f.screentop;
+			Vector3 middlepos 	= f.screenmiddle;
+			Vector3 bottompos 	= f.screenbottom;
 			int top 	= (int)toppos.y;
 			int middle 	= (int)middlepos.y;
 			int bottom 	= (int)bottompos.y;
@@ -295,12 +294,12 @@ public class Rasterizer {
 					textureendu 		= f.topVertexUV.u,
 					texturestartv 		= f.topVertexUV.v,
 					textureendv 		= f.topVertexUV.v,
-					worldstartx			= f.worldtop.position.x,
-					worldendx			= f.worldtop.position.x,
-					worldstarty			= f.worldtop.position.y,
-					worldendy			= f.worldtop.position.y,
-					worldstartz 		= f.worldtop.position.z,
-					worldendz 			= f.worldtop.position.z;
+					worldstartx			= f.worldtop.x,
+					worldendx			= f.worldtop.x,
+					worldstarty			= f.worldtop.y,
+					worldendy			= f.worldtop.y,
+					worldstartz 		= f.worldtop.z,
+					worldendz 			= f.worldtop.z;
 			if (f.middleOnRight()) { // Middle vertex on the right
 				float 	screenleftxslope  	= (bottompos.x - toppos.x) / toptobottomdist,
 						screenrightxslope 	= (middlepos.x - toppos.x) / toptomiddledist,
@@ -308,12 +307,12 @@ public class Rasterizer {
 						texturerightuslope 	= (f.middleVertexUV.u - f.topVertexUV.u) / toptomiddledist,
 						textureleftvslope  	= (f.bottomVertexUV.v - f.topVertexUV.v) / toptobottomdist,
 						texturerightvslope 	= (f.middleVertexUV.v - f.topVertexUV.v) / toptomiddledist,
-						worldleftxslope  	= (f.worldbottom.position.x - f.worldtop.position.x) / toptobottomdist,
-						worldrightxslope 	= (f.worldmiddle.position.x - f.worldtop.position.x) / toptomiddledist,
-						worldleftyslope  	= (f.worldbottom.position.y - f.worldtop.position.y) / toptobottomdist,
-						worldrightyslope 	= (f.worldmiddle.position.y - f.worldtop.position.y) / toptomiddledist,
-						worldleftzslope  	= (f.worldbottom.position.z - f.worldtop.position.z) / toptobottomdist,
-						worldrightzslope 	= (f.worldmiddle.position.z - f.worldtop.position.z) / toptomiddledist;
+						worldleftxslope  	= (f.worldbottom.x - f.worldtop.x) / toptobottomdist,
+						worldrightxslope 	= (f.worldmiddle.x - f.worldtop.x) / toptomiddledist,
+						worldleftyslope  	= (f.worldbottom.y - f.worldtop.y) / toptobottomdist,
+						worldrightyslope 	= (f.worldmiddle.y - f.worldtop.y) / toptomiddledist,
+						worldleftzslope  	= (f.worldbottom.z - f.worldtop.z) / toptobottomdist,
+						worldrightzslope 	= (f.worldmiddle.z - f.worldtop.z) / toptomiddledist;
 				if (top < 0) { // If top vertex is off screen
 					float difference = -top;
 					top = 0; // Start from top of screen instead
@@ -354,15 +353,15 @@ public class Rasterizer {
 				screenrightxslope 	= (bottompos.x - middlepos.x) / middletobottomdist;
 				texturerightuslope 	= (f.bottomVertexUV.u - f.middleVertexUV.u) / middletobottomdist;
 				texturerightvslope 	= (f.bottomVertexUV.v - f.middleVertexUV.v) / middletobottomdist;
-				worldrightxslope 	= (f.worldbottom.position.x - f.worldmiddle.position.x) / middletobottomdist;
-				worldrightyslope 	= (f.worldbottom.position.y - f.worldmiddle.position.y) / middletobottomdist;
-				worldrightzslope 	= (f.worldbottom.position.z - f.worldmiddle.position.z) / middletobottomdist;
+				worldrightxslope 	= (f.worldbottom.x - f.worldmiddle.x) / middletobottomdist;
+				worldrightyslope 	= (f.worldbottom.y - f.worldmiddle.y) / middletobottomdist;
+				worldrightzslope 	= (f.worldbottom.z - f.worldmiddle.z) / middletobottomdist;
 				screenendx 			= middlepos.x;
 				textureendu = f.middleVertexUV.u;
 				textureendv = f.middleVertexUV.v;
-				worldendx 	= f.worldmiddle.position.x;
-				worldendy 	= f.worldmiddle.position.y;
-				worldendz 	= f.worldmiddle.position.z;
+				worldendx 	= f.worldmiddle.x;
+				worldendy 	= f.worldmiddle.y;
+				worldendz 	= f.worldmiddle.z;
 				for (; scanline < bottom; scanline++) {
 					drawScanline(scanline, (int)screenstartx, (int)screenendx, worldstartx, worldendx, worldstarty, worldendy, worldstartz, worldendz, texturestartu, textureendu, texturestartv, textureendv, cam, f.texture);
 
@@ -386,12 +385,12 @@ public class Rasterizer {
 						texturerightuslope 	= (f.bottomVertexUV.u - f.topVertexUV.u) / toptobottomdist,
 						textureleftvslope  	= (f.middleVertexUV.v - f.topVertexUV.v) / toptomiddledist,
 						texturerightvslope 	= (f.bottomVertexUV.v - f.topVertexUV.v) / toptobottomdist,
-						worldleftxslope  	= (f.worldmiddle.position.x - f.worldtop.position.x) / toptomiddledist,
-						worldrightxslope 	= (f.worldbottom.position.x - f.worldtop.position.x) / toptobottomdist,
-						worldleftyslope  	= (f.worldmiddle.position.y - f.worldtop.position.y) / toptomiddledist,
-						worldrightyslope 	= (f.worldbottom.position.y - f.worldtop.position.y) / toptobottomdist,
-						worldleftzslope  	= (f.worldmiddle.position.z - f.worldtop.position.z) / toptomiddledist,
-						worldrightzslope 	= (f.worldbottom.position.z - f.worldtop.position.z) / toptobottomdist;
+						worldleftxslope  	= (f.worldmiddle.x - f.worldtop.x) / toptomiddledist,
+						worldrightxslope 	= (f.worldbottom.x - f.worldtop.x) / toptobottomdist,
+						worldleftyslope  	= (f.worldmiddle.y - f.worldtop.y) / toptomiddledist,
+						worldrightyslope 	= (f.worldbottom.y - f.worldtop.y) / toptobottomdist,
+						worldleftzslope  	= (f.worldmiddle.z - f.worldtop.z) / toptomiddledist,
+						worldrightzslope 	= (f.worldbottom.z - f.worldtop.z) / toptobottomdist;
 				if (top < 0) { // If top vertex is off screen
 					float difference = -top;
 					top = 0; // Start from top of screen instead
@@ -432,15 +431,15 @@ public class Rasterizer {
 				screenleftxslope 	= (bottompos.x - middlepos.x) / middletobottomdist;
 				textureleftuslope 	= (f.bottomVertexUV.u - f.middleVertexUV.u) / middletobottomdist;
 				textureleftvslope 	= (f.bottomVertexUV.v - f.middleVertexUV.v) / middletobottomdist;
-				worldleftxslope 	= (f.worldbottom.position.x - f.worldmiddle.position.x) / middletobottomdist;
-				worldleftyslope 	= (f.worldbottom.position.y - f.worldmiddle.position.y) / middletobottomdist;
-				worldleftzslope 	= (f.worldbottom.position.z - f.worldmiddle.position.z) / middletobottomdist;
+				worldleftxslope 	= (f.worldbottom.x - f.worldmiddle.x) / middletobottomdist;
+				worldleftyslope 	= (f.worldbottom.y - f.worldmiddle.y) / middletobottomdist;
+				worldleftzslope 	= (f.worldbottom.z - f.worldmiddle.z) / middletobottomdist;
 				screenstartx 		= middlepos.x;
 				texturestartu 	= f.middleVertexUV.u;
 				texturestartv 	= f.middleVertexUV.v;
-				worldstartx 	= f.worldmiddle.position.x;
-				worldstarty 	= f.worldmiddle.position.y;
-				worldstartz 	= f.worldmiddle.position.z;
+				worldstartx 	= f.worldmiddle.x;
+				worldstarty 	= f.worldmiddle.y;
+				worldstartz 	= f.worldmiddle.z;
 				for (; scanline < bottom; scanline++) {
 					drawScanline(scanline, (int)screenstartx, (int)screenendx, worldstartx, worldendx, worldstarty, worldendy, worldstartz, worldendz, texturestartu, textureendu, texturestartv, textureendv, cam, f.texture);
 
