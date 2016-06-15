@@ -22,9 +22,9 @@ import utils.Log;
 public class OBJLoader {
 	public static Mesh load(String path) throws IOException, MalformException, IndexOutOfBoundsException, UnsupportedDimensionException {
 		Texture texture = ColorTexture.error;
-		ArrayList<Face> facelist = new ArrayList<Face>(100);
 		ArrayList<Vertex> vertlist = new ArrayList<Vertex>(100);
 		ArrayList<UVSet> uvlist = new ArrayList<UVSet>(100);
+		ArrayList<Face> facelist = new ArrayList<Face>(100);
 		
 		BufferedReader objfilereader = new BufferedReader(new InputStreamReader(new DataInputStream(new FileInputStream(path))));
 		while(!objfilereader.ready()){}
@@ -93,44 +93,35 @@ public class OBJLoader {
 				if (indicies[2] > vertlist.size())
 					throw new IndexOutOfBoundsException("Pointer to undefined Vertex (" + indicies[5] + ") on line " + line + ".");
 				
+				if (indicies[3] > uvlist.size())
+					throw new IndexOutOfBoundsException("Pointer to undefined UV coordinate (" + indicies[3] + ") on line " + line + ".");
+				if (indicies[4] > uvlist.size())
+					throw new IndexOutOfBoundsException("Pointer to undefined UV coordinate (" + indicies[4] + ") on line " + line + ".");
+				if (indicies[5] > uvlist.size())
+					throw new IndexOutOfBoundsException("Pointer to undefined UV coordinate (" + indicies[5] + ") on line " + line + ".");
+					
 				Vertex 
 				v1 = vertlist.get(indicies[0]),
 				v2 = vertlist.get(indicies[1]),
 				v3 = vertlist.get(indicies[2]);
+				
 				Face newface = new Face(
 						indicies[0],
 						indicies[1],
-						indicies[2]
+						indicies[2],
+						uvlist.get(indicies[3]),
+						uvlist.get(indicies[4]),
+						uvlist.get(indicies[5])
 						);
-
+				
 				//TODO: Move to Model class
-				newface.normal = calculateFaceNormal(
+				newface.normal = Face.getNormal(
 						v1.position,
 						v2.position,
 						v3.position
 						).normalize();
 				
 				facelist.add(newface);
-				
-				if (!uvlist.isEmpty()) {
-					if (indicies[3] > uvlist.size())
-						throw new IndexOutOfBoundsException("Pointer to undefined UV coordinate (" + indicies[3] + ") on line " + line + ".");
-					if (indicies[4] > uvlist.size())
-						throw new IndexOutOfBoundsException("Pointer to undefined UV coordinate (" + indicies[4] + ") on line " + line + ".");
-					if (indicies[5] > uvlist.size())
-						throw new IndexOutOfBoundsException("Pointer to undefined UV coordinate (" + indicies[5] + ") on line " + line + ".");
-					
-					if (v1.textureCoordinates != UVSet.zero)
-						Log.writeLine("Redefinition of UV for vertex " +indicies[0] + ".");
-					if (v2.textureCoordinates != UVSet.zero)
-						Log.writeLine("Redefinition of UV for vertex " +indicies[1] + ".");
-					if (v3.textureCoordinates != UVSet.zero)
-						Log.writeLine("Redefinition of UV for vertex " +indicies[2] + ".");
-					
-					v1.textureCoordinates = uvlist.get(indicies[3]);
-					v2.textureCoordinates = uvlist.get(indicies[4]);
-					v3.textureCoordinates = uvlist.get(indicies[5]);
-				}
 			} else if (line.startsWith("tex")) { // Just for testing, not actually part of the spec
 				String folder = path.substring(0, path.lastIndexOf("/") + 1);
 				texture = new ImageTexture(folder + line.substring(4));
@@ -150,17 +141,6 @@ public class OBJLoader {
 		
 		//System.out.println("Loaded model with " + vertcies.length + " vertcies and " + faces.length + " faces.");
 		return new Mesh(vertcies, faces, texture);
-	}
-	
-	// Reference: https://www.opengl.org/wiki/Calculating_a_Surface_Normal
-	private static Vector3 calculateFaceNormal(Vector3 v1, Vector3 v2, Vector3 v3) {
-		Vector3 normal = new Vector3(0);
-		Vector3 u = Vector3.subtract(v2, v1);
-		Vector3 v = Vector3.subtract(v3, v1);
-		normal.x = (u.y * v.z) - (u.z * v.y);
-		normal.y = (u.z * v.x) - (u.x * v.z);
-		normal.z = (u.x * v.y) - (u.y * v.x);
-		return normal;
 	}
 	
 	//TOOD: Method to create triangular faces out of list of verts and UVs
