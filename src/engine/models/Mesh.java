@@ -30,8 +30,8 @@ public class Mesh {
 		projectedvertcies = new Vertex[vertcies.length];
 		for (int i=0; i<vertcies.length; i++) {
 			Vertex vertex = vertcies[i];
-			projectedvertcies[i] 	= new Vertex(vertex.position.Clone(), vertex.textureCoordinates);
-			transformedvertcies[i] 	= new Vertex(vertex.position.Clone(), vertex.textureCoordinates);
+			projectedvertcies[i] 	= new Vertex(vertex.position.Clone());
+			transformedvertcies[i] 	= new Vertex(vertex.position.Clone());
 		}
 			
 		this.faces = faces;
@@ -96,11 +96,11 @@ public class Mesh {
 		
 		
 		java.awt.Graphics canvas = image.createGraphics();
-		canvas.setColor(java.awt.Color.black);
+		canvas.setColor(java.awt.Color.white);
 		for (Face f : faces) {
-			UVSet va = vertcies[f.vertex1].textureCoordinates;
-			UVSet vb = vertcies[f.vertex2].textureCoordinates;
-			UVSet vc = vertcies[f.vertex3].textureCoordinates;
+			UVSet va = f.uv1;
+			UVSet vb = f.uv2;
+			UVSet vc = f.uv3;
 			canvas.drawLine(
 					(int)(va.u*width),
 					(int)(va.v*height),
@@ -131,12 +131,12 @@ public class Mesh {
 			file.write(output);
 		}
 		for (Face f : faces) {
-			String out = "f " + (f.vertex1+1) + " " + (f.vertex2+1) + " " + (f.vertex3+1) + "\n";
-			file.write(out);
+			String output = "n " + f.normal.x + " " + f.normal.y + " " + f.normal.z + "\n";
+			file.write(output);
 		}
 		for (Face f : faces) {
-			String output = "n " + (f.normal.x + 1) + " " + (f.normal.y + 1) + " " + (f.normal.z)+"\n";
-			file.write(output);
+			String out = "f " + (f.vertex1+1) + " " + (f.vertex2+1) + " " + (f.vertex3+1) + "\n";
+			file.write(out);
 		}
 		file.flush();
 		file.close();
