@@ -71,8 +71,8 @@ public class AABB {
 
 	public AABB expand(AABB box) {
 		Point2D
-		boxmax = box.getMax(),
-		thismax = getMax(),
+		boxmax = box.max,
+		thismax = max,
 		max = new Point2D(Math.max(thismax.x, boxmax.x), Math.max(thismax.y, boxmax.y)),
 		min = new Point2D(Math.min(box.position.x, position.x), Math.min(box.position.y, position.y)),
 		size = new Point2D(max.x-min.x, max.y-min.y);

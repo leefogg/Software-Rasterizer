@@ -1,5 +1,5 @@
 package engine.math;
-public class Vector3 {
+public final class Vector3 {
 	public static final Vector3 
 	zero = new Vector3(0),
 	up = new Vector3(0,1,0);
@@ -41,7 +41,7 @@ public class Vector3 {
 		return divide((float)length);
 	}
 	
-	public Vector3 lookAt(Vector3 p) {
+	public final Vector3 lookAt(Vector3 p) {
 		return subtract(p).divide((float)p.getMagnitude());
 	}
 	
@@ -56,7 +56,7 @@ public class Vector3 {
 		return Math.sqrt((x * x) + (y * y) + (z * z)); // Can't believe I can call this thousands of times per second
 	}
 	
-	public Vector3 crossProduct(Vector3 other) {
+	public final Vector3 crossProduct(Vector3 other) {
 		float x = y*other.z - z*other.y;
 		float y = z*other.x - x*other.z;
 		float z = x*other.y - y*other.x;
@@ -73,20 +73,20 @@ public class Vector3 {
 				);
 	}
 	
-	public float dotProduct(Vector3 other) {
+	public final float dotProduct(Vector3 other) {
 		return dotProduct(this, other);
 	}
 	public static float dotProduct(Vector3 vec1, Vector3 vec2) {
 		return vec1.x * vec2.x + vec1.y * vec2.y + vec1.z * vec2.z;
 	}
 	
-	public Vector3 scale(float scale) {
+	public final Vector3 scale(float scale) {
 		x *= scale;
 		y *= scale;
 		z *= scale;
 		return this;
 	}
-	public Vector3 multiply(Vector3 vec) {
+	public final Vector3 multiply(Vector3 vec) {
 		x *= vec.x;
 		y *= vec.y;
 		z *= vec.z;
@@ -99,13 +99,13 @@ public class Vector3 {
 		return new Vector3(vec1.x * scaler, vec1.y * scaler, vec1.z * scaler);
 	}
 	
-	public Vector3 divide(float div) {
+	public final Vector3 divide(float div) {
 		x /= div;
 		y /= div;
 		z /= div;
 		return this;
 	}
-	public Vector3 divide(Vector3 vec) {
+	public final Vector3 divide(Vector3 vec) {
 		x /= vec.x;
 		y /= vec.y;
 		z /= vec.z;
@@ -118,13 +118,13 @@ public class Vector3 {
 		return new Vector3(vec1.x / vec2.x, vec1.y / vec2.y, vec1.z / vec2.z);
 	}
 	
-	public Vector3 add(float x, float y, float z) {
+	public final Vector3 add(float x, float y, float z) {
 		this.x += x;
 		this.y += y;
 		this.z += z;
 		return this;
 	}
-	public Vector3 add(Vector3 vec) {
+	public final Vector3 add(Vector3 vec) {
 		x += vec.x;
 		y += vec.y;
 		z += vec.z;
@@ -134,13 +134,13 @@ public class Vector3 {
 		return new Vector3(vec1.x+vec2.x, vec1.y+vec2.y, vec1.z+vec2.z);
 	}
 	
-	public Vector3 subtract(float x, float y, float z) {
+	public final Vector3 subtract(float x, float y, float z) {
 		this.x -= x;
 		this.y -= y;
 		this.z -= z;
 		return this;
 	}
-	public Vector3 subtract(Vector3 vec) {
+	public final Vector3 subtract(Vector3 vec) {
 		x -= vec.x;
 		y -= vec.y;
 		z -= vec.z;
@@ -150,26 +150,28 @@ public class Vector3 {
 		return new Vector3(vec1.x-vec2.x, vec1.y-vec2.y, vec1.z-vec2.z);
 	}
 	
-	public Vector3 negate() {
+	public final Vector3 negate() {
 		x = -x;
 		y = -y;
 		z = -z;
 		return this;
 	}
 	
-	public Vector3 Clone() {return new Vector3(x, y, z);}
-	public void Clone(Vector3 vector) {
+	public Vector3 Clone() {
+		return new Vector3(x, y, z);
+	}
+	public final void Clone(Vector3 vector) {
 		vector.x = x;
 		vector.y = y;
 		vector.z = z;
 	}
 	
 	@Override
-	public String toString() {
+	public final String toString() {
 		return "X: " + x + " Y: " + y + " Z: " + z;
 	}
 	
-	public String toGLSLConstructor() {
+	public final String toGLSLConstructor() {
 		return "Vec3(" + x + "," + y + "," + z + ")";
 	}
 	

@@ -320,9 +320,7 @@ public class Matrix {
         dest.y = (pos.x * mat.m[1]) + (pos.y * mat.m[5]) + (pos.z * mat.m[9]) + mat.m[13];
         dest.z = (pos.x * mat.m[2]) + (pos.y * mat.m[6]) + (pos.z * mat.m[10]) + mat.m[14];
         float w = (pos.x * mat.m[3]) + (pos.y * mat.m[7]) + (pos.z * mat.m[11]) + mat.m[15];
-        dest.x /= w;
-        dest.y /= w;
-        dest.z /= w;
+        dest.divide(w);
 	}
 	
 	public Vector3 transformNormal(Vector3 pos) {

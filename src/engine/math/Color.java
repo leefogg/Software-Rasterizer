@@ -2,7 +2,7 @@ package engine.math;
 
 import static engine.math.CommonMath.*;
 
-public class Color {
+public final class Color {
 	public static final Color
 	red = new Color(255,0,0),
 	green = new Color(0,255,0),
@@ -61,7 +61,7 @@ public class Color {
 		set(a, r, g, b);
 	}
 	
-	public void set(int argb) {
+	public final void set(int argb) {
 		set(
 				(argb >> 24) & 0xFF,
 				(argb >> 16) & 0xFF,
@@ -69,7 +69,7 @@ public class Color {
 				argb & 0xFF
 			);	
 	}
-	public void set(int a, int r, int g, int b) {
+	public final void set(int a, int r, int g, int b) {
 		set(
 			(float)a / 255f,
 			(float)r / 255f,
@@ -77,7 +77,7 @@ public class Color {
 			(float)b / 255f
 		);
 	}
-	public void set(int r, int g, int b) {
+	public final void set(int r, int g, int b) {
 		set(
 				0f,
 				(float)r / 255f,
@@ -85,7 +85,7 @@ public class Color {
 				(float)b / 255f
 			);
 	}
-	public void set(byte r, byte g, byte b) {
+	public final void set(byte r, byte g, byte b) {
 		set(
 				0,
 				(float)r / 255f,
@@ -94,7 +94,7 @@ public class Color {
 			);
 	}
 	
-	public void set(float a, float r, float g, float b) {
+	public final void set(float a, float r, float g, float b) {
 		if (!isValidColor(a, r, g, b))
 			throw new IllegalArgumentException("ARGB value outside of supported range.");
 		
@@ -104,14 +104,14 @@ public class Color {
 		this.b = b;
 	}
 	
-	public void set(Color c) {
+	public final void set(Color c) {
 		this.r = c.r;
 		this.g = c.g;
 		this.b = c.b; 
 		this.a = c.a;
 	}
 	
-	public Color add(Color c) {
+	public final Color add(Color c) {
 		r += c.r;
 		g += c.g;
 		b += c.b;
@@ -119,14 +119,14 @@ public class Color {
 		return this;
 	}
 	
-	public Color reverseSubtract(Color c) {
+	public final Color reverseSubtract(Color c) {
 		r = c.r - r;
 		g = c.g - g;
 		b = c.b - b;
 		a = c.a - a;
 		return this;
 	}
-	public Color subtract(Color c) {
+	public final Color subtract(Color c) {
 		r -= c.r;
 		g -= c.g;
 		b -= c.b;
@@ -134,7 +134,7 @@ public class Color {
 		return this;
 	}
 	
-	public Color multiply(Color c) {
+	public final Color multiply(Color c) {
 		r *= c.r;
 		g *= c.g;
 		b *= c.b;
@@ -142,7 +142,7 @@ public class Color {
 		return this;
 	}
 	
-	public Color multiply(float scale) {
+	public final Color multiply(float scale) {
 		r *= scale;
 		g *= scale;
 		b *= scale;
@@ -150,20 +150,20 @@ public class Color {
 		return this;
 	}
 	
-	public void max(Color color) {
+	public final void max(Color color) {
 		a = Math.max(a, color.a);
 		r = Math.max(r, color.r);
 		g = Math.max(g, color.g);
 		b = Math.max(b, color.b);
 	}
-	public void min(Color color) {
+	public final void min(Color color) {
 		a = Math.min(a, color.a);
 		r = Math.min(r, color.r);
 		g = Math.min(g, color.g);
 		b = Math.min(b, color.b);
 	}
 	
-	protected boolean isValidColor(float a, float r, float g, float b) {
+	private boolean isValidColor(float a, float r, float g, float b) {
 		if (a > 1f) return false;
 		if (r > 1f) return false;
 		if (g > 1f) return false;
@@ -175,14 +175,14 @@ public class Color {
 		return true;
 	}
 	
-	public void ensureScale() {
+	private final void ensureScale() {
 		a = clamp(a);
 		r = clamp(r);
 		g = clamp(g);
 		b = clamp(b);
 	}
 	
-	public void normalize() {
+	public final void normalize() {
 		float max = r;
 		if (g > max)
 			max = g;
@@ -197,7 +197,7 @@ public class Color {
 		a /= max;
 	}
 	
-	public static boolean hasAlpha(int argb) {
+	public final static boolean hasAlpha(int argb) {
 		return ((argb >> 24) & 0xFF) < 255;
 	}
 	
@@ -205,7 +205,7 @@ public class Color {
 		return new Color(a,r,g,b);
 	}
 	
-	public void clone(Color c) {
+	public final void clone(Color c) {
 		c.a = a;
 		c.r = r;
 		c.g = g;
@@ -216,7 +216,7 @@ public class Color {
 		return new java.awt.Color(r,g,b);
 	}
 	
-	public int toARGB() {
+	public final int toARGB() {
 		ensureScale();
 		int
 		a = (int)(this.a * 255f),
