@@ -34,7 +34,6 @@ public class Vector3 {
 	public final double getMagnitude() {
 		return Math.sqrt((x * x) + (y * y) + (z * z));
 	}
-	// TODO: dont always return a new vector
 	
 	public final Vector3 normalize() {
 		double length = getMagnitude();

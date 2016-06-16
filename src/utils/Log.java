@@ -19,7 +19,6 @@ public class Log {
 		try {
 			outfile.write(line);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -28,7 +27,6 @@ public class Log {
 		try {
 			outfile.write(line + newline);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -38,7 +36,6 @@ public class Log {
 			outfile.flush();
 			outfile.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

@@ -145,7 +145,6 @@ public class Rasterizer {
 	public BufferedImage getDepthBuffer(BufferedImage buffer, Camera camera) {
 		byte[] outputpixels = ((DataBufferByte)buffer.getRaster().getDataBuffer()).getData(); // Pointer to buffer
 		
-		
 		float
 		znear = camera.getZNear(),
 		zfar = camera.getZFar();
