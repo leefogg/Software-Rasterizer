@@ -31,8 +31,8 @@ public class Mesh {
 		projectedvertcies = new Vector3[vertcies.length];
 		for (int i=0; i<vertcies.length; i++) {
 			Vertex vertex = vertcies[i];
-			projectedvertcies[i] 	= vertex.position.Clone();
 			transformedvertcies[i] 	= vertex.position.Clone();
+			projectedvertcies[i] 	= vertex.position.Clone();
 		}
 			
 		this.faces = faces;
@@ -49,6 +49,23 @@ public class Mesh {
 	private void transformVertcies(Matrix transformmatrix) {
 		for (int i=0; i<vertcies.length; i++) {
 			Matrix.transformCoordinates(vertcies[i].position, transformmatrix, transformedvertcies[i]);			
+		}
+		
+		updateFaces();
+	}
+	
+	private void updateFaces() {
+		for (Face face : faces) {
+			face.updateFaceCenter(
+					transformedvertcies[face.vertex1],
+					transformedvertcies[face.vertex2],
+					transformedvertcies[face.vertex3]
+					);
+			face.updateFaceNormal(
+					transformedvertcies[face.vertex1],
+					transformedvertcies[face.vertex2],
+					transformedvertcies[face.vertex3]
+					);
 		}
 	}
 	
@@ -82,7 +99,7 @@ public class Mesh {
 	
 	private void updateWorldMatrix() {
 		worldmatrix = Matrix.RotationYawPitchRoll(rotation.y, rotation.x, rotation.z)
-				.multiply(Matrix.translation(position.x, position.y, position.z));	
+					  .multiply(Matrix.translation(position.x, position.y, position.z));	
 	}
 	
 	public void debugUVs(String imagepath) throws IOException {

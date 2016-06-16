@@ -234,38 +234,14 @@ public class Rasterizer {
 	}
 	
 	private float dotFaceCenterToCam(Mesh mesh, Face face, Camera camera) {
-		Face.getCenter(
-				mesh.transformedvertcies[face.vertex1],
-				mesh.transformedvertcies[face.vertex2],
-				mesh.transformedvertcies[face.vertex3], 
-				facecenter
-			);
-		Face.getNormal(
-				mesh.transformedvertcies[face.vertex1],
-				mesh.transformedvertcies[face.vertex2],
-				mesh.transformedvertcies[face.vertex3], 
-				facenormal
-			);
-		Vector3 aimdirection = camera.getAimDirection(facecenter).normalize();
+		Vector3 aimdirection = camera.getAimDirection(face.center).normalize();
 	
-		return facenormal.dotProduct(aimdirection);
+		return face.normal.dotProduct(aimdirection);
 	}
 	private float dotCameraAimToFaceNormal(Mesh mesh, Face face, Camera camera) {
-		Face.getCenter(
-				mesh.transformedvertcies[face.vertex1],
-				mesh.transformedvertcies[face.vertex2],
-				mesh.transformedvertcies[face.vertex3], 
-				facecenter
-			);
-		Face.getNormal(
-				mesh.transformedvertcies[face.vertex1],
-				mesh.transformedvertcies[face.vertex2],
-				mesh.transformedvertcies[face.vertex3], 
-				facenormal
-			);
-		Vector3 aimdirection = camera.getAimDirection().normalize();
+		Vector3 aimdirection = camera.getAimDirection(facecenter).normalize();
 	
-		return facenormal.dotProduct(aimdirection);
+		return face.normal.dotProduct(aimdirection);
 	}
 
 	public void drawTriangle(Fragment f, Camera cam) {

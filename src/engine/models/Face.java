@@ -5,7 +5,9 @@ import engine.math.Vector3;
 public class Face {
 	public int vertex1, vertex2, vertex3;
 	public UVSet uv1, uv2, uv3;
-	public Vector3 normal;
+	public Vector3 
+	center = new Vector3(),
+	normal = new Vector3();
 
 	public Face(int vertex1, int vertex2, int vertex3, UVSet uv1, UVSet uv2, UVSet uv3) {
 		this.vertex1 = vertex1;
@@ -16,6 +18,17 @@ public class Face {
 		this.uv3 = uv3;
 	}
 	
+	public final void updateFaceNormal(Vector3 v1, Vector3 v2, Vector3 v3) {
+		getNormal(v1, v2, v3, normal);
+	}
+	
+	public final void updateFaceCenter(Vector3 v1, Vector3 v2, Vector3 v3) {
+		getCenter(v1, v2, v3, center);
+	}
+	
+	public static final Vector3 getCenter(Vector3 v1, Vector3 v2, Vector3 v3) {
+		return getCenter(v1, v2, v3, new Vector3());
+	}
 	public static final Vector3 getCenter(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 out) {
 		out.set(v1);
 		out.add(v2);
@@ -26,7 +39,7 @@ public class Face {
 	
 	// Reference: https://www.opengl.org/wiki/Calculating_a_Surface_Normal
 	public static Vector3 getNormal(Vector3 v1, Vector3 v2, Vector3 v3) {
-		return getNormal(v1, v2, v3, new Vector3(0,0,0));
+		return getNormal(v1, v2, v3, new Vector3());
 	}
 	public static Vector3 getNormal(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 out) {
 		Vector3 u = Vector3.subtract(v2, v1);

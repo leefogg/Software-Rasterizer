@@ -73,6 +73,8 @@ public class Viewport extends Canvas implements MouseWheelListener {
 			System.exit(1);
 		}
 		
+		System.gc();
+		
 		Graphics2D graphics = (Graphics2D)buffer.getDrawGraphics();
 		while(true) {
 			tick();
@@ -86,7 +88,7 @@ public class Viewport extends Canvas implements MouseWheelListener {
 			
 			renderer.swapBuffers();
 			//graphics.clearRect(0, 0, getWidth(), getHeight());
-			graphics.drawImage(renderer.getFrameBuffer(), 0, 0, Window.width, Window.height, this);
+			graphics.drawImage(renderer.getDepthBuffer(camera), 0, 0, Window.width, Window.height, this);
 			
 			graphics.setColor(Color.green);
 			graphics.drawString("FPS: " + String.valueOf(1000000000 / timetaken), 5, 15);
@@ -100,10 +102,16 @@ public class Viewport extends Canvas implements MouseWheelListener {
 	float stepsize = (float)Math.PI*2/1000f;
 	float distance = 5;
 	private void tick() {
+		/*
 		Vector3 pos = camera.getPosition();
-		pos.x = (float)Math.cos(sincos) * distance;
-		pos.z = (float)Math.sin(sincos) * distance;
+		Vector3 target = camera.getTarget();
+		pos.x = target.x + (float)(Math.cos(sincos) * distance);
+		pos.z = target.z + (float)(Math.sin(sincos) * distance);
 		camera.setPosition(pos);
+		*/
+		Vector3 rot = glados.getRotation();
+		rot.y += 0.01f;
+		glados.setRotation(rot);
 		sincos += stepsize;
 	}
 
