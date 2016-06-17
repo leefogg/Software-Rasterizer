@@ -1,7 +1,6 @@
 package engine;
 
-import static engine.math.CommonMath.clamp;
-import static engine.math.CommonMath.isInRange;
+import static engine.math.CommonMath.*;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
@@ -52,7 +51,7 @@ public class Rasterizer {
 	facenormal = new Vector3(0,0,0), // The normal of the face being rendered
 	worldpos = new Vector3(0,0,0); // The world position of the current pixel being shaded
 	private AABB boundingbox; // Used to clip triangles
-	private Fragment currentFragment = new Fragment();
+	private Primitive currentFragment = new Primitive();
 	
 	// Settings
 	private boolean cullfaces = false;
@@ -128,7 +127,7 @@ public class Rasterizer {
 	public void swapBuffers() {
 		int[] outputpixels = ((DataBufferInt)framebuffer.getRaster().getDataBuffer()).getData(); // Pointer to buffer
 		for (int i=0; i<pixels.length; i++)
-			outputpixels[i] = pixels[i].toARGB();		
+			outputpixels[i] = pixels[i].toARGB();
 	}
 	
 	public void copyBufferToTexture(ImageTexture texture) {
@@ -243,7 +242,7 @@ public class Rasterizer {
 		return face.normal.dotProduct(aimdirection);
 	}
 
-	public void drawTriangle(Fragment f, Camera cam) {
+	public void drawTriangle(Primitive f, Camera cam) {
 			Vector3 toppos 		= f.screentop;
 			Vector3 middlepos 	= f.screenmiddle;
 			Vector3 bottompos 	= f.screenbottom;

@@ -1,13 +1,11 @@
 package engine;
 
 import engine.math.AABB;
-import engine.math.Point2D;
 import engine.math.Vector3;
 import engine.models.Texture;
 import engine.models.UVSet;
-import engine.models.Vertex;
 
-final class Fragment {
+final class Primitive {
 	public Vector3
 	worldtop,
 	worldmiddle,
@@ -22,7 +20,7 @@ final class Fragment {
 	public Texture texture;
 	private AABB boundingbox = new AABB();
 	
-	public Fragment() {}
+	public Primitive() {}
 	
 	public final void set(Vector3 worldv1, Vector3 worldv2, Vector3 worldv3, Vector3 screenv1, Vector3 screenv2, Vector3 screenv3, UVSet uv1, UVSet uv2, UVSet uv3, Texture texture) {
 		this.texture = texture;
@@ -141,8 +139,8 @@ final class Fragment {
 		return toptomiddlexslope > toptobottomxslope;
 	}
 	
-	public Fragment Clone() {
-		Fragment f = new Fragment();
+	public Primitive Clone() {
+		Primitive f = new Primitive();
 		f.boundingbox = boundingbox;
 		f.texture = texture;
 		f.screentop = screentop;
