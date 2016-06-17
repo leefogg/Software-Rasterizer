@@ -4,7 +4,10 @@ import engine.math.Vector3;
 
 public class Face {
 	public int vertex1, vertex2, vertex3;
-	public UVSet uv1, uv2, uv3;
+	public UVSet 
+	uv1 = UVSet.zero,
+	uv2 = UVSet.zero,
+	uv3 = UVSet.zero;
 	public Vector3 
 	center = new Vector3(),
 	normal = new Vector3();

@@ -77,42 +77,49 @@ public class OBJLoader {
 					int i=0;
 					for (String component : components) {
 						String[] subcomponents = component.split("/"); 
-						indicies[i] = Integer.valueOf(subcomponents[0])-1;// Add vertex indexes
-						if (subcomponents.length > 1) {
-							if (subcomponents[1].length() != 0)
-								indicies[i+3] = Integer.valueOf(subcomponents[1])-1; // Add U, V indexes
+						int vertexpointer = Integer.valueOf(subcomponents[0])-1;
+						if (vertexpointer >= vertlist.size())
+							throw new IndexOutOfBoundsException("Pointer to undefined Vertex (" + indicies[3] + ") on line " + linenumber + ".");
+						
+						indicies[i] = vertexpointer;// Add vertex indexes
+						
+						if (subcomponents.length > 1) { // Has UV?
+							if (subcomponents[1].length() != 0) { // Is it not blank?
+								int uvpointer = Integer.valueOf(subcomponents[1])-1;
+								if (uvpointer >= uvlist.size())
+									throw new IndexOutOfBoundsException("Pointer to undefined UV coordinate (" + indicies[3] + ") on line " + linenumber + ".");
+								
+								indicies[i+3] = uvpointer; // Add U, V indexes
+							}
 						}
 						i++;
 					}
 				}
-				
-				if (indicies[0] > vertlist.size())
-					throw new IndexOutOfBoundsException("Pointer to undefined Vertex (" + indicies[3] + ") on line " + line + ".");
-				if (indicies[1] > vertlist.size())
-					throw new IndexOutOfBoundsException("Pointer to undefined Vertex (" + indicies[4] + ") on line " + line + ".");
-				if (indicies[2] > vertlist.size())
-					throw new IndexOutOfBoundsException("Pointer to undefined Vertex (" + indicies[5] + ") on line " + line + ".");
-				
-				if (indicies[3] > uvlist.size())
-					throw new IndexOutOfBoundsException("Pointer to undefined UV coordinate (" + indicies[3] + ") on line " + line + ".");
-				if (indicies[4] > uvlist.size())
-					throw new IndexOutOfBoundsException("Pointer to undefined UV coordinate (" + indicies[4] + ") on line " + line + ".");
-				if (indicies[5] > uvlist.size())
-					throw new IndexOutOfBoundsException("Pointer to undefined UV coordinate (" + indicies[5] + ") on line " + line + ".");
 					
 				Vertex 
 				v1 = vertlist.get(indicies[0]),
 				v2 = vertlist.get(indicies[1]),
 				v3 = vertlist.get(indicies[2]);
-				
-				Face newface = new Face(
-						indicies[0],
-						indicies[1],
-						indicies[2],
-						uvlist.get(indicies[3]),
-						uvlist.get(indicies[4]),
-						uvlist.get(indicies[5])
-						);
+				Face newface;
+				if (uvlist.size() != 0) {
+					newface = new Face(
+							indicies[0],
+							indicies[1],
+							indicies[2],
+							uvlist.get(indicies[3]),
+							uvlist.get(indicies[4]),
+							uvlist.get(indicies[5])
+							);
+				} else {
+					newface = new Face(
+							indicies[0],
+							indicies[1],
+							indicies[2],
+							UVSet.zero,
+							UVSet.zero,
+							UVSet.zero
+							);
+				}
 				
 				//TODO: Move to Model class
 				newface.normal = Face.getNormal(
@@ -122,7 +129,10 @@ public class OBJLoader {
 						).normalize();
 				
 				facelist.add(newface);
-			} else if (line.startsWith("tex")) { // Just for testing, not actually part of the spec
+			} else if (line.startsWith("tex")) { // Just for testing, not actually part of the specification
+				if (uvlist.size() == 0)
+					Log.writeLine("Texture added for model with no UVs");
+				
 				String folder = path.substring(0, path.lastIndexOf("/") + 1);
 				texture = new ImageTexture(folder + line.substring(4));
 			}
