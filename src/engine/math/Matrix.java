@@ -5,7 +5,7 @@ import java.util.Arrays;
 public class Matrix {
 	private float[] m = new float[16];
 
-	public static final Matrix 
+	private static final Matrix 
 	identity = new Matrix(new float[]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1});
 
 	public Matrix() {}

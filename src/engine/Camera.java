@@ -14,7 +14,7 @@ public class Camera {
 	fov,
 	znear, zfar;
 	
-	public Matrix 
+	Matrix 
 	viewMatrix = new Matrix(),
 	projectionMatrix = new Matrix();
 	

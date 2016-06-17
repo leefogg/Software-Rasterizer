@@ -11,15 +11,15 @@ import engine.math.Vector3;
 import engine.models.Materials.ImageTexture;
 
 public class Mesh {
-	public Vertex[] 
+	private Vertex[] 
 			vertcies;
 	public Vector3[]
 			transformedvertcies,
 			projectedvertcies; 
 	public Face[] faces;
 	private Vector3 
-	position = Vector3.zero.Clone(),
-	rotation = new Vector3(0.00001f, 0.00001f, 0.00001f);
+		position = Vector3.zero.Clone(),
+		rotation = new Vector3(0.00001f, 0.00001f, 0.00001f);
 	public Texture texture = Texture.error;
 	
 	public Matrix worldmatrix;

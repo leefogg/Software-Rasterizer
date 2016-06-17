@@ -7,7 +7,7 @@ import engine.models.Texture;
 import engine.models.UVSet;
 import engine.models.Vertex;
 
-public final class Fragment {
+final class Fragment {
 	public Vector3
 	worldtop,
 	worldmiddle,
