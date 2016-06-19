@@ -9,6 +9,8 @@ I will cover loading simple 3D model formats such as Wavefront OBJ, representing
 + OBJ file loading
 + Calculated face normals using verticies position and direction
 + per-pixel world coordinates
++ Pixel shaders
++ Built-in shaders
 + znear and zfar clipping
 + Camera FOV
 + Void colour
@@ -35,6 +37,3 @@ I will cover loading simple 3D model formats such as Wavefront OBJ, representing
 + Rendering off screen
 + Rendering modes like GLBegin
 + Matrix stacking
-+ Fragment shaders
-+ Pixel shaders
-+ Built-in shaders

@@ -4,14 +4,14 @@ import static engine.math.CommonMath.*;
 
 public final class Color {
 	public static final Color
-	red = new Color(255,0,0),
-	green = new Color(0,255,0),
-	blue = new Color(0,0,255),
-	black = new Color(0,0,0),
-	white = new Color(255,255,255),
-	alpha = new Color(0,0,0,0);
+	red = new Color(java.awt.Color.red),
+	green = new Color(java.awt.Color.green),
+	blue = new Color(java.awt.Color.blue),
+	black = new Color(java.awt.Color.black),
+	white = new Color(java.awt.Color.white),
+	alpha = new Color(0x00000000);
 	
-	public float r, g, b, a;
+	public float r, g, b, a = 1f;
 	
 	public Color(){}
 	

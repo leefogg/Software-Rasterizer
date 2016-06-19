@@ -23,6 +23,7 @@ public class Face {
 	
 	public final void updateFaceNormal(Vector3 v1, Vector3 v2, Vector3 v3) {
 		getNormal(v1, v2, v3, normal);
+		normal.normalize();
 	}
 	
 	public final void updateFaceCenter(Vector3 v1, Vector3 v2, Vector3 v3) {

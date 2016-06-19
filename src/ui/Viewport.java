@@ -1,35 +1,38 @@
 package ui;
+import static engine.Rasterizer.*;
+
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferStrategy;
-import java.io.File;
 import java.io.IOException;
-
-import javax.imageio.ImageIO;
 
 import engine.Camera;
 import engine.Rasterizer;
 import engine.math.Vector3;
 import engine.models.Mesh;
-import engine.models.Texture;
 import engine.models.Materials.ImageTexture;
+import engine.models.Materials.Shading.AmbientLightShader;
+import engine.models.Materials.Shading.NormalShader;
+import engine.models.Materials.Shading.StripShader;
+import engine.models.Materials.Shading.WorldSpaceShader;
 import resources.loaders.OBJLoader;
 import utils.FrameCounter;
 import utils.Log;
-import static engine.Rasterizer.*;
 
 public class Viewport extends Canvas implements MouseWheelListener {
 	private static final long serialVersionUID = -869334646261735255L;
+	
+	private FrameCounter fc = new FrameCounter();
 
 	private BufferStrategy buffer;
 
 	private Rasterizer renderer;
-	private Camera camera = new Camera(0.9f, 320, 240, 1f, 10f);
+	private Camera camera;
 	
-	Mesh glados, floor;
+	Mesh model2, model1;
 
 	public Viewport() {
 		setIgnoreRepaint(true);
@@ -49,24 +52,27 @@ public class Viewport extends Canvas implements MouseWheelListener {
 			e.printStackTrace();
 		}
 
-		renderer = new Rasterizer(320, 240);
+		camera = new Camera(0.9f, 640, 480, 1f, 10f);
+		renderer = new Rasterizer(camera.getWidth(), camera.getHeight());
 		renderer.setClearColor(0xFF000000);
 		renderer.enable(GL_CULL_FACE);
 		renderer.cullFace(GL_BACK);
 		renderer.blendEquation(GL_FUNC_SET);
 		
-		camera.setPosition(0, 3, 3);
-		camera.setTarget(0, 1, 0);
+		camera.setPosition(0, 3, 7);
+		camera.setTarget(0, 0, 0);
 		
 		try {
 			String localdir =  System.getProperty("user.dir").replaceAll("\\\\", "/");
-			floor = OBJLoader.load(localdir + "/res/floor.obj");
-			ImageTexture screentex = (ImageTexture)floor.texture;
-			screentex.repeatX = 10;
-			screentex.repeatY = 10;
 			
-			glados = OBJLoader.load(localdir + "/res/glados.obj");
-			glados.setPosition(0,1,0);
+//			model1 = OBJLoader.load(localdir + "/res/floor.obj");
+//			ImageTexture screentex = (ImageTexture)model1.texture;
+//			screentex.repeatX = 10;
+//			screentex.repeatY = 10;
+			
+			model2 = OBJLoader.load(localdir + "/res/demo/metaball.obj");
+			model2.setPosition(0,0,0);
+			model2.shader = new AmbientLightShader(light, 2);
 		} catch (Exception e) {
 			System.out.println("An error accured loading resources.");
 			e.printStackTrace();
@@ -81,37 +87,32 @@ public class Viewport extends Canvas implements MouseWheelListener {
 			
 			renderer.clear(GL_BUFFER_BIT | GL_DEPTH_BIT);
 			
-			long beforetime = System.nanoTime();
-			renderer.render(floor, camera);
-			renderer.render(glados, camera);
-			long timetaken = System.nanoTime() - beforetime;
+			//renderer.render(model1, camera);
+			renderer.render(model2, camera);
 			
 			renderer.swapBuffers();
-			//graphics.clearRect(0, 0, getWidth(), getHeight());
-			graphics.drawImage(renderer.getDepthBuffer(camera), 0, 0, Window.width, Window.height, this);
+			graphics.clearRect(0, 0, Window.width, Window.height);
+			graphics.drawImage(renderer.getFrameBuffer(), 0, 0, Window.width, Window.height, this);
 			
 			graphics.setColor(Color.green);
-			graphics.drawString("FPS: " + String.valueOf(1000000000 / timetaken), 5, 15);
+			graphics.drawString("FPS: " + fc.fps, 5, 15);
 
 			if(!buffer.contentsLost())
 				buffer.show();
+			
+			fc.newFrame();
 		} 
 	}
 
 	float sincos = 0;
-	float stepsize = (float)Math.PI*2/1000f;
-	float distance = 5;
+	float stepsize = (float)Math.PI*2/500f;
+	float distance = 2;
+	Vector3 light = new Vector3(5,0,0);
 	private void tick() {
-		/*
-		Vector3 pos = camera.getPosition();
-		Vector3 target = camera.getTarget();
-		pos.x = target.x + (float)(Math.cos(sincos) * distance);
-		pos.z = target.z + (float)(Math.sin(sincos) * distance);
-		camera.setPosition(pos);
-		*/
-		Vector3 rot = glados.getRotation();
-		rot.y += 0.01f;
-		glados.setRotation(rot);
+
+		light.z = (float)Math.cos(sincos) * distance;
+		light.x = (float)Math.sin(sincos) * distance;
+		
 		sincos += stepsize;
 	}
 

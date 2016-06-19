@@ -14,6 +14,7 @@ import engine.models.Face;
 import engine.models.Mesh;
 import engine.models.Texture;
 import engine.models.Materials.ImageTexture;
+import engine.models.Materials.Shading.Shader;
 
 public class Rasterizer {
 	// Global enums like OpenGL. Import statically for convenience
@@ -210,7 +211,6 @@ public class Rasterizer {
 			}
 			
 			// More complex culling tests
-			
 			currentFragment.set(
 					mesh.transformedvertcies[face.vertex1],
 					mesh.transformedvertcies[face.vertex2],
@@ -227,7 +227,12 @@ public class Rasterizer {
 			if (!currentFragment.isOnScreen(boundingbox)) continue;
 			
 			// Okay, draw it
-			drawTriangle(currentFragment, camera);
+			if (mesh.shader != null) {
+				mesh.shader.texture = mesh.texture;
+				mesh.shader.faceNormal = face.normal;
+				mesh.shader.FaceCenter = face.center;
+			}
+			drawTriangle(currentFragment, camera, mesh.shader);
 		}
 	}
 	
@@ -242,7 +247,7 @@ public class Rasterizer {
 		return face.normal.dotProduct(aimdirection);
 	}
 
-	public void drawTriangle(Primitive f, Camera cam) {
+	public void drawTriangle(Primitive f, Camera cam, Shader shader) {
 			Vector3 toppos 		= f.screentop;
 			Vector3 middlepos 	= f.screenmiddle;
 			Vector3 bottompos 	= f.screenbottom;
@@ -308,7 +313,7 @@ public class Rasterizer {
 
 				int scanline = top;
 				for (; scanline < middle; scanline++) {
-					drawScanline(scanline, (int)screenstartx, (int)screenendx, worldstartx, worldendx, worldstarty, worldendy, worldstartz, worldendz, texturestartu, textureendu, texturestartv, textureendv, cam, f.texture);
+					drawScanline(scanline, (int)screenstartx, (int)screenendx, worldstartx, worldendx, worldstarty, worldendy, worldstartz, worldendz, texturestartu, textureendu, texturestartv, textureendv, cam, f.texture, shader);
 
 					screenstartx 	+= screenleftxslope;
 					screenendx 		+= screenrightxslope;
@@ -337,7 +342,7 @@ public class Rasterizer {
 				worldendy 	= f.worldmiddle.y;
 				worldendz 	= f.worldmiddle.z;
 				for (; scanline < bottom; scanline++) {
-					drawScanline(scanline, (int)screenstartx, (int)screenendx, worldstartx, worldendx, worldstarty, worldendy, worldstartz, worldendz, texturestartu, textureendu, texturestartv, textureendv, cam, f.texture);
+					drawScanline(scanline, (int)screenstartx, (int)screenendx, worldstartx, worldendx, worldstarty, worldendy, worldstartz, worldendz, texturestartu, textureendu, texturestartv, textureendv, cam, f.texture, shader);
 
 					screenstartx 	+= screenleftxslope;
 					screenendx 		+= screenrightxslope;
@@ -386,7 +391,7 @@ public class Rasterizer {
 
 				int scanline = top;
 				for (; scanline < middle; scanline++) {
-					drawScanline(scanline, (int)screenstartx, (int)screenendx, worldstartx, worldendx, worldstarty, worldendy, worldstartz, worldendz, texturestartu, textureendu, texturestartv, textureendv, cam, f.texture);
+					drawScanline(scanline, (int)screenstartx, (int)screenendx, worldstartx, worldendx, worldstarty, worldendy, worldstartz, worldendz, texturestartu, textureendu, texturestartv, textureendv, cam, f.texture, shader);
 
 					screenstartx 	+= screenleftxslope;
 					screenendx 		+= screenrightxslope;
@@ -415,7 +420,7 @@ public class Rasterizer {
 				worldstarty 	= f.worldmiddle.y;
 				worldstartz 	= f.worldmiddle.z;
 				for (; scanline < bottom; scanline++) {
-					drawScanline(scanline, (int)screenstartx, (int)screenendx, worldstartx, worldendx, worldstarty, worldendy, worldstartz, worldendz, texturestartu, textureendu, texturestartv, textureendv, cam, f.texture);
+					drawScanline(scanline, (int)screenstartx, (int)screenendx, worldstartx, worldendx, worldstarty, worldendy, worldstartz, worldendz, texturestartu, textureendu, texturestartv, textureendv, cam, f.texture, shader);
 
 					screenstartx 	+= screenleftxslope;
 					screenendx 		+= screenrightxslope;
@@ -433,7 +438,7 @@ public class Rasterizer {
 			}
 	}
 
-	private void drawScanline(int y, int screenstartx, int screenendx, float worldstartx, float worldendx, float worldstarty, float worldendy, float worldstartz, float worldendz, float texturestartu, float textureendu, float texturestartv, float textureendv, Camera camera, Texture tex) {
+	private void drawScanline(int y, int screenstartx, int screenendx, float worldstartx, float worldendx, float worldstarty, float worldendy, float worldstartz, float worldendz, float texturestartu, float textureendu, float texturestartv, float textureendv, Camera camera, Texture tex, Shader shader) {
 		// How much difference in attributes per pixel
 		float scanlinelength = screenendx - screenstartx;
 		float uslope = (textureendu - texturestartu)/ scanlinelength;
@@ -482,13 +487,23 @@ public class Rasterizer {
 			if (pixelindex == -1) 
 				continue;
 			
-			Color pixelcolor = tex.map(u, v);
-			//TODO: Shade pixel
 			
-			setPixel(pixelindex,
-					 distance,
-					 pixelcolor
-				);
+			depthBuffer[pixelindex] = distance;
+			Color pixelcolor = tex.map(u, v); // TODO: Make optional for shader with private method
+			if (shader != null) {
+				shader.distanceToCamera = distance;
+				shader.screenX = x;
+				shader.screenY = y;
+				shader.worldPosition = worldpos;
+				shader.destinationColor = pixels[pixelindex];
+				shader.sourceColor = pixelcolor;
+				shader.shade();
+			} else {
+				setPixel(pixelindex,
+						 distance,
+						 pixelcolor
+					);
+			}
 		}
 	}
 	
@@ -512,9 +527,6 @@ public class Rasterizer {
 	}
 	
 	private void setPixel(int pixelindex, float z, Color color) {
-		depthBuffer[pixelindex] = z;
-		
-		
 		switch(blendMode) {
 			case GL_FUNC_SET:
 				pixels[pixelindex].set(color);

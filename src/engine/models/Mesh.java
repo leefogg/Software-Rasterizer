@@ -9,6 +9,7 @@ import javax.imageio.ImageIO;
 import engine.math.Matrix;
 import engine.math.Vector3;
 import engine.models.Materials.ImageTexture;
+import engine.models.Materials.Shading.Shader;
 
 public class Mesh {
 	private Vertex[] 
@@ -23,6 +24,8 @@ public class Mesh {
 	public Texture texture = Texture.error;
 	
 	public Matrix worldmatrix;
+	
+	public Shader shader;
 	
 	public Mesh(Vertex[] verticies, Face[] faces, Texture tex) {
 		this.vertcies = verticies;
