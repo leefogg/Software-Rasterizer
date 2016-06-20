@@ -131,7 +131,15 @@ public final class Vector3 {
 		return this;
 	}
 	public static Vector3 add(Vector3 vec1, Vector3 vec2) {
-		return new Vector3(vec1.x+vec2.x, vec1.y+vec2.y, vec1.z+vec2.z);
+		return add(vec1, vec2, new Vector3());
+	}
+	public static Vector3 add(Vector3 vec1, Vector3 vec2, Vector3 out) {
+		out.set(vec1.x+vec2.x,
+				vec1.y+vec2.y,
+				vec1.z+vec2.z
+				);
+		
+		return out;
 	}
 	
 	public final Vector3 subtract(float x, float y, float z) {
@@ -147,7 +155,14 @@ public final class Vector3 {
 		return this;
 	}
 	public static Vector3 subtract(Vector3 vec1, Vector3 vec2) {
-		return new Vector3(vec1.x-vec2.x, vec1.y-vec2.y, vec1.z-vec2.z);
+		return subtract(vec1, vec2, new Vector3());
+	}
+	public static Vector3 subtract(Vector3 vec1, Vector3 vec2, Vector3 out) {
+		out.set(vec1.x-vec2.x,
+				vec1.y-vec2.y,
+				vec1.z-vec2.z
+				);
+		return out;
 	}
 	
 	public final Vector3 negate() {

@@ -52,27 +52,25 @@ public class Viewport extends Canvas implements MouseWheelListener {
 			e.printStackTrace();
 		}
 
-		camera = new Camera(0.9f, 640, 480, 1f, 10f);
+		camera = new Camera(0.9f, 640, 480, 1f, 20f);
 		renderer = new Rasterizer(camera.getWidth(), camera.getHeight());
 		renderer.setClearColor(0xFF000000);
 		renderer.enable(GL_CULL_FACE);
 		renderer.cullFace(GL_BACK);
 		renderer.blendEquation(GL_FUNC_SET);
 		
-		camera.setPosition(0, 3, 7);
-		camera.setTarget(0, 0, 0);
+		camera.setPosition(0, 2.5f, 10);
+		camera.setTarget(0, 2.5f, 2f);
 		
 		try {
 			String localdir =  System.getProperty("user.dir").replaceAll("\\\\", "/");
 			
-//			model1 = OBJLoader.load(localdir + "/res/floor.obj");
-//			ImageTexture screentex = (ImageTexture)model1.texture;
-//			screentex.repeatX = 10;
-//			screentex.repeatY = 10;
+			model1 = OBJLoader.load(localdir + "/res/wall.obj");
+			//model1.shader = new AmbientLightShader(light, 2);
 			
 			model2 = OBJLoader.load(localdir + "/res/demo/metaball.obj");
-			model2.setPosition(0,0,0);
-			model2.shader = new AmbientLightShader(light, 2);
+			model2.setPosition(0,2.5f,0);
+			//model2.shader = new AmbientLightShader(light, 2);
 		} catch (Exception e) {
 			System.out.println("An error accured loading resources.");
 			e.printStackTrace();
@@ -87,7 +85,7 @@ public class Viewport extends Canvas implements MouseWheelListener {
 			
 			renderer.clear(GL_BUFFER_BIT | GL_DEPTH_BIT);
 			
-			//renderer.render(model1, camera);
+			renderer.render(model1, camera);
 			renderer.render(model2, camera);
 			
 			renderer.swapBuffers();
@@ -105,9 +103,9 @@ public class Viewport extends Canvas implements MouseWheelListener {
 	}
 
 	float sincos = 0;
-	float stepsize = (float)Math.PI*2/500f;
+	float stepsize = (float)Math.PI*2/100f;
 	float distance = 2;
-	Vector3 light = new Vector3(5,0,0);
+	Vector3 light = new Vector3(0, 2.5f, 0);
 	private void tick() {
 
 		light.z = (float)Math.cos(sincos) * distance;

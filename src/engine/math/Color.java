@@ -112,10 +112,14 @@ public final class Color {
 	}
 	
 	public final Color add(Color c) {
-		r += c.r;
-		g += c.g;
-		b += c.b;
-		a += c.a;
+		add(c.a, c.r, c.g, c.b);
+		return this;
+	}
+	public final Color add(float a, float r, float g, float b) {
+		this.r += r;
+		this.g += g;
+		this.b += b;
+		this.a += a;
 		return this;
 	}
 	
@@ -127,26 +131,52 @@ public final class Color {
 		return this;
 	}
 	public final Color subtract(Color c) {
-		r -= c.r;
-		g -= c.g;
-		b -= c.b;
-		a -= c.a;
+		subtract(c.a, c.r, c.g, c.b);
+		return this;
+	}
+	public final Color subtract(float a, float r, float g, float b) {
+		this.r -= r;
+		this.g -= g;
+		this.b -= b;
+		this.a -= a;
 		return this;
 	}
 	
 	public final Color multiply(Color c) {
-		r *= c.r;
-		g *= c.g;
-		b *= c.b;
-		a *= c.a;
+		multiply(c.a, c.r, c.g, c.b);
 		return this;
 	}
-	
+	public final Color multiply(float a, float r, float g, float b) {
+		this.r *= r;
+		this.g *= g;
+		this.b *= b;
+		this.a *= a;
+		return this;
+	}
 	public final Color multiply(float scale) {
 		r *= scale;
 		g *= scale;
 		b *= scale;
 		a *= scale;
+		return this;
+	}
+	
+	public final Color divide(Color c) {
+		divide(c.a, c.r, c.g, c.b);
+		return this;
+	}
+	public final Color divide(float a, float r, float g, float b) {
+		this.r *= r;
+		this.g *= g;
+		this.b *= b;
+		this.a *= a;
+		return this;
+	}
+	public final Color divide(float scale) {
+		r /= scale;
+		g /= scale;
+		b /= scale;
+		a /= scale;
 		return this;
 	}
 	

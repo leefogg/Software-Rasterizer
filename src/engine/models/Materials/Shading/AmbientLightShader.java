@@ -7,6 +7,8 @@ public final class AmbientLightShader extends Shader {
 	public Vector3 lightpos;
 	public float dropoffDistance;
 	
+	private Vector3 direction = new Vector3();
+	
 	public AmbientLightShader(Vector3 lightpos, float dropoffdistance) {
 		this.lightpos = lightpos;
 		this.dropoffDistance = dropoffdistance;
@@ -14,21 +16,23 @@ public final class AmbientLightShader extends Shader {
 
 	@Override
 	public void shade() {
-		Vector3 direction = Vector3.subtract(lightpos, worldPosition);
+		Vector3.subtract(lightpos, worldPosition, direction);
 		float dist = (float)direction.getMagnitude();
 		if (dist > dropoffDistance) {
 			destinationColor.set(Color.black);
 			return;
 		}
-		float dot = Vector3.dotProduct(direction.normalize(), worldPosition.normalize());
+		float dot = faceNormal.dotProduct(direction.normalize());
 		if (dot < 0) {
 			destinationColor.set(Color.black);
 			return;
 		}
 		
-		float c = 1 - dist / dropoffDistance;
+		float c = 1 - (dist / dropoffDistance);
 		c *= dot;
-		sourceColor.set(1, c, c, c);
+		
+		
+		sourceColor.multiply(1, c, c, c);
 		destinationColor.set(sourceColor);
 	}
 }

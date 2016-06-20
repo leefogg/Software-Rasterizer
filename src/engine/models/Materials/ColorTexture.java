@@ -12,6 +12,14 @@ public final class ColorTexture extends Texture {
 		this.color = color;
 	}
 
+	public Color getColor() {
+		return color.clone();
+	}
+
+	public void setColor(Color color) {
+		this.color = color;
+	}
+
 	@Override
 	public final Color map(float tu, float tv) {
 		return color;

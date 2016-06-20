@@ -496,7 +496,7 @@ public class Rasterizer {
 				shader.screenY = y;
 				shader.worldPosition = worldpos;
 				shader.destinationColor = pixels[pixelindex];
-				shader.sourceColor = pixelcolor;
+				shader.sourceColor.set(pixelcolor);
 				shader.shade();
 			} else {
 				setPixel(pixelindex,

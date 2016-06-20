@@ -5,7 +5,9 @@ import engine.math.Vector3;
 import engine.models.Texture;
 
 public class Fragment {
-	public Color sourceColor, destinationColor;
+	public Color 
+	sourceColor = new Color(),
+	destinationColor;
 	public Vector3 worldPosition, FaceCenter, faceNormal;
 	public int screenX, screenY;
 	public float distanceToCamera;
