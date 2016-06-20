@@ -14,13 +14,13 @@ public final class AmbientLightShader extends Shader {
 
 	@Override
 	public void shade() {
-		Vector3 direction = Vector3.subtract(lightpos, FaceCenter);
+		Vector3 direction = Vector3.subtract(lightpos, worldPosition);
 		float dist = (float)direction.getMagnitude();
 		if (dist > dropoffDistance) {
 			destinationColor.set(Color.black);
 			return;
 		}
-		float dot = Vector3.dotProduct(direction.normalize(), faceNormal);
+		float dot = Vector3.dotProduct(direction.normalize(), worldPosition.normalize());
 		if (dot < 0) {
 			destinationColor.set(Color.black);
 			return;
