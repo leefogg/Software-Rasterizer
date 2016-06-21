@@ -483,7 +483,7 @@ public class Rasterizer {
 			worldpos.set(worldx, worldy, worldz);
 			float distance = (float)camera.getDistanceToCamera(worldpos);
 			
-			int pixelindex = testPixel(x, y, distance, znear, zfar);
+			int pixelindex = getPixelIndex(x, y, distance, znear, zfar);
 			if (pixelindex == -1) 
 				continue;
 			
@@ -499,9 +499,8 @@ public class Rasterizer {
 				shader.destinationColor = pixels[pixelindex];
 				shader.shade();
 			} else {
-				Color pixelcolor = tex.map(u, v); // TODO: Make optional for shader with private method
+				Color pixelcolor = tex.map(u, v);
 				setPixel(pixelindex,
-						 distance,
 						 pixelcolor
 					);
 			}
@@ -509,15 +508,15 @@ public class Rasterizer {
 		}
 	}
 	
-	private int testPixel(int x, int y, float z, float znear, float zfar) {
-		if (z > zfar)
-			return -1;
-		if (z < znear)
-			return -1;
-		
+	private int getPixelIndex(int x, int y, float z, float znear, float zfar) {
 		if (x > width)
 			return -1;
 		if (y > height)
+			return -1;
+		
+		if (z > zfar)
+			return -1;
+		if (z < znear)
 			return -1;
 		
 		int pixelindex = y*width + x;
@@ -528,7 +527,7 @@ public class Rasterizer {
 		return pixelindex;
 	}
 	
-	private void setPixel(int pixelindex, float z, Color color) {
+	private void setPixel(int pixelindex, Color color) {
 		switch(blendMode) {
 			case GL_FUNC_SET:
 				pixels[pixelindex].set(color);
