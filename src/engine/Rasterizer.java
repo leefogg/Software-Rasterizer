@@ -489,21 +489,23 @@ public class Rasterizer {
 			
 			
 			depthBuffer[pixelindex] = distance;
-			Color pixelcolor = tex.map(u, v); // TODO: Make optional for shader with private method
 			if (shader != null) {
 				shader.distanceToCamera = distance;
 				shader.screenX = x;
 				shader.screenY = y;
+				shader.u = u;
+				shader.v = v;
 				shader.worldPosition = worldpos;
 				shader.destinationColor = pixels[pixelindex];
-				shader.sourceColor.set(pixelcolor);
 				shader.shade();
 			} else {
+				Color pixelcolor = tex.map(u, v); // TODO: Make optional for shader with private method
 				setPixel(pixelindex,
 						 distance,
 						 pixelcolor
 					);
 			}
+			
 		}
 	}
 	

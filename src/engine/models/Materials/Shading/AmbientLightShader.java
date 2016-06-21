@@ -31,7 +31,7 @@ public final class AmbientLightShader extends Shader {
 		float c = 1 - (dist / dropoffDistance);
 		c *= dot;
 		
-		
+		getTextureColor();
 		sourceColor.multiply(1, c, c, c);
 		destinationColor.set(sourceColor);
 	}

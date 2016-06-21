@@ -9,9 +9,17 @@ public class Fragment {
 	sourceColor = new Color(),
 	destinationColor;
 	public Vector3 worldPosition, FaceCenter, faceNormal;
-	public int screenX, screenY;
+	public int 
+	screenX, screenY;
+	public float
+	u, v;
 	public float distanceToCamera;
 	public Texture texture;
 	
 	public Fragment() {}
+	
+	protected Color getTextureColor() {
+		sourceColor.set(texture.map(u, v));
+		return sourceColor;
+	}
 }
