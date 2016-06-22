@@ -488,9 +488,9 @@ public class Rasterizer {
 				continue;
 			
 			
-			depthBuffer[pixelindex] = distance;
 			if (shader != null) {
-				shader.distanceToCamera = distance;
+				shader.destinationDepth = depthBuffer[pixelindex];
+				shader.sourceDepth = distance;
 				shader.screenX = x;
 				shader.screenY = y;
 				shader.u = u;
@@ -498,11 +498,14 @@ public class Rasterizer {
 				shader.worldPosition = worldpos;
 				shader.destinationColor = pixels[pixelindex];
 				shader.shade();
+				
+				depthBuffer[pixelindex] = shader.sourceDepth;				
 			} else {
 				Color pixelcolor = tex.map(u, v);
 				setPixel(pixelindex,
 						 pixelcolor
 					);
+				depthBuffer[pixelindex] = distance;
 			}
 			
 		}

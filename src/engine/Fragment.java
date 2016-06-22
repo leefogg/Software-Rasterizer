@@ -13,7 +13,7 @@ public class Fragment {
 	screenX, screenY;
 	public float
 	u, v;
-	public float distanceToCamera;
+	public float destinationDepth, sourceDepth;
 	public Texture texture;
 	
 	public Fragment() {}

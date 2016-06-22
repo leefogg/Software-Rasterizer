@@ -108,10 +108,13 @@ public class AABB {
 	}
 	
 	public boolean isPointInside(Vector3 point) {
-		if (point.x < position.x) 			return false;
-		if (point.x > position.x+size.x) 	return false;
-		if (point.y < position.y) 			return false;
-		if (point.y > position.y+size.y) 	return false;
+		return isPointInside(point.x, point.y);
+	}
+	public boolean isPointInside(float x, float y) {
+		if (x < position.x) 		return false;
+		if (x > position.x+size.x) 	return false;
+		if (y < position.y) 		return false;
+		if (y > position.y+size.y) 	return false;
 		
 		return true;
 	}
