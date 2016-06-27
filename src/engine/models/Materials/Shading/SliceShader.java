@@ -17,9 +17,9 @@ public class SliceShader extends Shader {
 		worldPosition.y %= height;
 		if (Math.abs(worldPosition.y) < height / 2) {
 			getTextureColor();
-			destinationColor.set(sourceColor);
 		} else {
 			sourceDepth = destinationDepth;
+			sourceColor.set(destinationColor);
 		}
 	}
 }

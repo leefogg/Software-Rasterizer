@@ -533,9 +533,10 @@ public class Rasterizer {
 				shader.u = u;
 				shader.v = v;
 				shader.worldPosition = worldpos;
-				shader.destinationColor = pixels[pixelindex];
+				shader.destinationColor.set(pixels[pixelindex]);
 				shader.shade();
 				
+				pixels[pixelindex].set(shader.sourceColor);
 				depthBuffer[pixelindex] = shader.sourceDepth;				
 			} else {
 				Color pixelcolor = tex.map(u, v);

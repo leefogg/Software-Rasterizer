@@ -20,9 +20,9 @@ public class StripShader extends Shader {
 		worldPosition.y += offset;
 		worldPosition.y %= height;
 		if (Math.abs(worldPosition.y) < height / 2) {
-			destinationColor.set(color1);
+			sourceColor.set(color1);
 		} else {
-			destinationColor.set(color2);
+			sourceColor.set(color2);
 		}
 	}
 }

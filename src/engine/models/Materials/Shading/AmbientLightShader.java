@@ -24,7 +24,7 @@ public final class AmbientLightShader extends Shader {
 		}
 		float dot = faceNormal.dotProduct(direction.normalize());
 		if (dot < 0) {
-			destinationColor.set(Color.black);
+			sourceColor.set(Color.black);
 			return;
 		}
 		
@@ -33,6 +33,5 @@ public final class AmbientLightShader extends Shader {
 		
 		getTextureColor();
 		sourceColor.multiply(1, c, c, c);
-		destinationColor.set(sourceColor);
 	}
 }
