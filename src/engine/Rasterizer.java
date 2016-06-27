@@ -18,9 +18,9 @@ import engine.models.Materials.Shading.Shader;
 
 public class Rasterizer {
 	// Global enums like OpenGL. Import statically for convenience
-	public static final int
-	GL_BUFFER_BIT = 1,
-	GL_DEPTH_BIT = 2,
+	public static final int // TODO: Create enums
+	GL_BUFFER = 1,
+	GL_DEPTH = 2,
 	
 	GL_CULL_FACE = 1,
 	GL_FRONT = 1,
@@ -32,7 +32,16 @@ public class Rasterizer {
 	GL_FUNC_SUBTRACT = 3,
 	GL_FUNC_REVERSE_SUBTRACT = 4,
 	GL_MIN = 5,
-	GL_MAX = 6;
+	GL_MAX = 6,
+	
+	GL_NEVER = 1,
+	GL_LESS = 2,
+	GL_GREATER = 4,
+	GL_EQUAL = 8,
+	GL_ALWAYS = 16,
+	GL_LEQUAL = 32,
+	GL_GEQUAL = 64,
+	GL_NOTEQUAL = 128;
 	
 	// Data required to render an image
 	//TODO: Replace with texture
@@ -48,16 +57,17 @@ public class Rasterizer {
 	worldviewMatrix = new Matrix(),
 	transformMatrix = new Matrix();
 	private Vector3 
-	facecenter = new Vector3(0,0,0), // The position of the center of the face being rendered
-	facenormal = new Vector3(0,0,0), // The normal of the face being rendered
+	facecenter = new Vector3(0,0,0), // The position of the centre of the face being rendered
 	worldpos = new Vector3(0,0,0); // The world position of the current pixel being shaded
 	private AABB boundingbox; // Used to clip triangles
 	private Primitive currentFragment = new Primitive();
 	
 	// Settings
 	private boolean cullfaces = false;
-	private int cullFaceMode = GL_BACK;
-	private int blendMode = GL_FUNC_SET;
+	private int 
+	cullFaceMode = GL_BACK,
+	blendFunction = GL_FUNC_SET,
+	depthFunction = GL_LESS;
 	
 	public Rasterizer(int width, int height) {
 		this.width = width;
@@ -87,31 +97,56 @@ public class Rasterizer {
 	
 	// OpenGL methods
 	public void clear(int mask) {
-		if ((mask & GL_BUFFER_BIT) == GL_BUFFER_BIT)
+		if ((mask & GL_BUFFER) == GL_BUFFER)
 			clearFrameBuffer();
-		if ((mask & GL_DEPTH_BIT) == GL_DEPTH_BIT)
+		
+		if ((mask & GL_DEPTH) == GL_DEPTH)
 			clearDepthBuffer();
 	}
 	public void enable(int settings) {
 		if ((settings & GL_CULL_FACE) == GL_CULL_FACE)
 			cullfaces = true;
+		
+		if ((settings & GL_DEPTH) == GL_DEPTH) 
+			depthFunction = GL_LEQUAL;
 	}
 	public void disable(int settings) {
 		if ((settings & GL_CULL_FACE) == GL_CULL_FACE)
 			cullfaces = false;
+		
+		if ((settings & GL_DEPTH) == GL_DEPTH) 
+			depthFunction = GL_ALWAYS;
 	}
+	
 	public void cullFace(int settings) {
-		if (settings == GL_BACK || settings == GL_FRONT || settings == GL_FRONT_AND_BACK) {
-			cullFaceMode = settings;
+		switch(settings) {
+			case GL_BACK:
+			case GL_FRONT:
+			case GL_FRONT_AND_BACK:
+				cullFaceMode = settings;
 		}
 	}
-	public void blendEquation(int settings) {
-		if (settings == GL_FUNC_SET ||
-			settings == GL_FUNC_ADD ||
-			settings == GL_FUNC_SUBTRACT ||
-			settings == GL_MAX ||
-			settings == GL_MIN) {
-			blendMode  = settings;
+	public void setBlendFunction(int function) {
+		switch(function) {
+			case GL_FUNC_SET:
+			case GL_FUNC_ADD:
+			case GL_FUNC_SUBTRACT:
+			case GL_MAX:
+			case GL_MIN:
+				blendFunction = function;
+		}
+	}
+	public void setDepthFunction(int function) {
+		switch(function) {
+			case GL_LESS:
+			case GL_LEQUAL:
+			case GL_GREATER:
+			case GL_GEQUAL:
+			case GL_EQUAL:
+			case GL_NOTEQUAL:
+			case GL_ALWAYS:
+			case GL_NEVER:
+				depthFunction = function;
 		}
 	}
 	
@@ -171,7 +206,7 @@ public class Rasterizer {
 		int pixel = 0;
 		// Copy existing pixels into new array
 		for (; pixel<Math.min(numpixels, pixels.length); pixel++) 
-			newpixels[pixel] = pixels[pixel];
+			newpixels[pixel] = pixels[pixel]; //TODO: Set to clear color
 		// If there's still more pixels, have to create new ones on the end
 		for (; pixel<numpixels; pixel++)
 			newpixels[pixel] = new Color(clearColor);
@@ -486,6 +521,8 @@ public class Rasterizer {
 			int pixelindex = getPixelIndex(x, y, distance, znear, zfar);
 			if (pixelindex == -1) 
 				continue;
+			if (!testDepth(pixelindex, distance))
+				continue;
 			
 			
 			if (shader != null) {
@@ -524,14 +561,38 @@ public class Rasterizer {
 		
 		int pixelindex = y*width + x;
 		
-		if (depthBuffer[pixelindex] < z) 
-			return -1;
-		
 		return pixelindex;
 	}
 	
+	private boolean testDepth(int index, float sourcez) {
+		switch(depthFunction) {
+			case GL_ALWAYS: return true;
+			case GL_NEVER: 	return false;
+		}
+		
+		float destz = depthBuffer[index];
+		
+		switch(depthFunction) {
+			case GL_LESS:
+				return sourcez < destz;
+			case GL_LEQUAL:
+				return sourcez <= destz;
+			case GL_GREATER:
+				return sourcez > destz;
+			case GL_GEQUAL:
+				return sourcez >= destz;
+			case GL_EQUAL:
+				return sourcez == destz;
+			case GL_NOTEQUAL:
+				return sourcez != destz;
+		}
+		
+		// Something went hideously wrong
+		return false;
+	}
+	
 	private void setPixel(int pixelindex, Color color) {
-		switch(blendMode) {
+		switch(blendFunction) {
 			case GL_FUNC_SET:
 				pixels[pixelindex].set(color);
 				break;
