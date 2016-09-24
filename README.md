@@ -8,10 +8,11 @@ I will cover loading simple 3D model formats such as Wavefront OBJ, representing
 ## Supported features
 + OBJ file loading
 + Calculated face normals using verticies position and direction
-+ per-pixel world coordinates
++ Per-pixel world coordinates
 + Pixel shaders
++ Light support
 + Built-in shaders
-+ znear and zfar clipping
++ Znear and zfar clipping
 + Camera FOV
 + Void colour
 + Back/Front face culling
@@ -30,7 +31,6 @@ I will cover loading simple 3D model formats such as Wavefront OBJ, representing
 + Model faces must have only three verticies
 
 ## Future features
-+ Light support
 + Vertex colours
 + MTL loading
 + Split non-triangular faces to triangles
