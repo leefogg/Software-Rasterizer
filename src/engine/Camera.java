@@ -12,7 +12,7 @@ public class Camera {
 	private int width, height;
 	private float
 	fov,
-	znear, zfar;
+	znear, zfar; // TODO: Square to eliminate sqrt 
 	
 	Matrix 
 	viewMatrix = new Matrix(),
@@ -23,7 +23,7 @@ public class Camera {
 	}
 	
 	public void set(float fov, int width, int height, float znear, float zfar) {		
-		this.fov = fov;
+		this.fov = fov; // TOOD change to degrees
 		this.width = width;
 		this.height = height;
 		this.znear = znear;
@@ -59,18 +59,18 @@ public class Camera {
 		updateViewMatrix();
 	}
 	
-	public int getWidth() {
+	public int getWidth() { // TODO: Rename
 		return width;
 	}
-	public void setWidth(int width) {
+	public void setWidth(int width) {// TOOD: Rename
 		this.width = width;
 		updateProjectionMatrix();
 	}
 
-	public int getHeight() {
+	public int getHeight() { // TOOD: Rename
 		return height;
 	}
-	public void setHeight(int height) {
+	public void setHeight(int height) {// TOOD: Rename
 		this.height = height;
 		updateProjectionMatrix();
 	}
@@ -111,6 +111,9 @@ public class Camera {
 	
 	public double getDistanceToCamera(Vector3 point) {
 		return Vector3.getDistance(point, position);
+	}
+	public float getDistanceToCameraSquared(Vector3 point) {
+		return Vector3.getSquaredDistance(point, position);
 	}
 	
 	

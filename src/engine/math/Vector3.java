@@ -53,7 +53,14 @@ public final class Vector3 {
 		float x = p1.x - p2.x;
 		float y = p1.y - p2.y;
 		float z = p1.z - p2.z;
-		return Math.sqrt((x * x) + (y * y) + (z * z)); // Can't believe I can call this thousands of times per second
+		return Math.sqrt((x * x) + (y * y) + (z * z));
+	}
+	
+	public static final float getSquaredDistance(Vector3 p1, Vector3 p2) {
+		float x = p1.x - p2.x;
+		float y = p1.y - p2.y;
+		float z = p1.z - p2.z;
+		return (x * x) + (y * y) + (z * z);
 	}
 	
 	public final Vector3 crossProduct(Vector3 other) {

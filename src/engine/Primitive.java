@@ -7,16 +7,16 @@ import engine.models.UVSet;
 
 final class Primitive {
 	public Vector3
-	worldtop,
-	worldmiddle,
-	worldbottom,
-	screentop,
-	screenmiddle,
-	screenbottom;
+		worldtop,
+		worldmiddle,
+		worldbottom,
+		screentop,
+		screenmiddle,
+		screenbottom;
 	public UVSet
-	topVertexUV,
-	middleVertexUV,
-	bottomVertexUV;
+		topVertexUV,
+		middleVertexUV,
+		bottomVertexUV;
 	public Texture texture;
 	private AABB boundingbox = new AABB();
 	

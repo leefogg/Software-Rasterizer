@@ -13,7 +13,7 @@ import engine.Rasterizer;
 import engine.math.Vector3;
 import engine.models.Mesh;
 import engine.models.Materials.ImageTexture;
-import engine.models.Materials.Shading.SliceShader;
+import engine.models.Materials.Shading.*;
 import resources.loaders.OBJLoader;
 import utils.FrameCounter;
 import utils.Log;
@@ -37,7 +37,7 @@ public class Viewport extends Canvas implements MouseWheelListener {
 		addMouseWheelListener(this);
 	}
 
-	SliceShader shader = new SliceShader(.2f);
+	AmbientLightShader shader = new AmbientLightShader(new Vector3(1,2,2), 5f);
 	public void start() {
 		createBufferStrategy(2);
 		buffer = getBufferStrategy();
@@ -49,7 +49,7 @@ public class Viewport extends Canvas implements MouseWheelListener {
 			e.printStackTrace();
 		}
 
-		camera = new Camera(0.9f, 320, 240, 1f, 10f);
+		camera = new Camera(0.9f, 640/2, 480/2, 1f, 10f);
 		renderer = new Rasterizer(camera.getWidth(), camera.getHeight());
 		renderer.setClearColor(0xFF000000);
 		renderer.enable(GL_CULL_FACE);
@@ -67,11 +67,11 @@ public class Viewport extends Canvas implements MouseWheelListener {
 			ImageTexture floortex = (ImageTexture)model1.texture;
 			floortex.repeatX = 10;
 			floortex.repeatY = 10;
-			//model1.shader = new AmbientLightShader(light, 2);
+			//model1.shader = shader;
 			
 			model2 = OBJLoader.load(localdir + "/res/glados.obj");
 			model2.setPosition(0,1,0);
-			//model2.shader = shader;
+			model2.shader = shader;
 		} catch (Exception e) {
 			System.out.println("An error accured loading resources.");
 			e.printStackTrace();
@@ -108,7 +108,6 @@ public class Viewport extends Canvas implements MouseWheelListener {
 	float distance = 5;
 	Vector3 light = new Vector3(0, 2.5f, 0);
 	private void tick() {
-		shader.offset += 0.005f;
 		
 		Vector3 cameraposition = camera.getPosition();
 		cameraposition.z = (float)Math.cos(sincos) * distance;
