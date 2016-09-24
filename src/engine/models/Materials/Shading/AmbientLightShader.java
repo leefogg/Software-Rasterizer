@@ -19,7 +19,7 @@ public final class AmbientLightShader extends Shader {
 		Vector3.subtract(lightpos, worldPosition, direction);
 		float dist = (float)direction.getMagnitude();
 		if (dist > dropoffDistance) {
-			destinationColor.set(Color.black);
+			sourceColor.set(Color.black);
 			return;
 		}
 		float dot = faceNormal.dotProduct(direction.normalize());
